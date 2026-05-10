@@ -68,20 +68,23 @@ class LoginController extends Controller
      * Redirect user based on their subscription status.
      */
     private function redirectBasedOnStatus($user)
-    {
-        if ($user->subscription_status === 'Pending') {
-            if (! $user->websites()->exists()) {
-                return redirect()->route('onboarding.subdomain');
-            }
-
-            return redirect()->route('onboarding.paywall');
+{
+    if ($user->subscription_status === 'Pending') {
+        if (! $user->plan_id) {
+            return redirect()->route('onboarding.select-plan');
         }
-
-        if ($user->subscription_status === 'Expired') {
-            return redirect()->route('dashboard');
+        if (! $user->websites()->exists()) {
+            return redirect()->route('onboarding.subdomain');
         }
-
-        // Active user
-        return redirect()->intended(route('dashboard'));
+        return redirect()->route('onboarding.paywall');
     }
+
+    if ($user->subscription_status === 'Expired') {
+        // Jika kamu tidak punya route bernama 'expired', buat view-nya atau arahkan ke dashboard
+        return redirect()->route('dashboard'); 
+    }
+
+    // Pastikan rute 'dashboard' ada di web.php
+    return redirect()->intended(route('dashboard'));
+}
 }
