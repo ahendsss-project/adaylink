@@ -147,11 +147,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('guest:web')->group(function () {
+Route::prefix('web')->group(function () {
+    Route::middleware('guest:web')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+    });
+});
+
+Route::middleware('guest:web')->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+
 });
 
 Route::middleware(['auth:web', 'not.blocked'])->group(function () {
