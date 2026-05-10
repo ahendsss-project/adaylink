@@ -12,11 +12,10 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\PublicWebsiteController;
 use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\TemplatePreviewController; // Contoh jika ada
 
 // Import Livewire Components
 use App\Livewire\Admin\{PendingApprovals, UserManagement, StockImageForm, StockImages, SubscriptionPlanForm, SubscriptionPlans, TemplateForm, Templates};
-use App\Livewire\Driver\{Dashboard as DriverDashboard, PageForm as DriverPageForm, Pages as DriverPages, Reviews as DriverReviews, TourPackageForm, TourPackages, VehicleForm, VehicleForms, Vehicles, WebsiteSettings};
+use App\Livewire\Driver\{Dashboard as DriverDashboard, PageForm as DriverPageForm, Pages as DriverPages, Reviews as DriverReviews, TourPackageForm, TourPackages, VehicleForm, Vehicles, WebsiteSettings};
 use App\Livewire\Onboarding\{Paywall, SelectPlan, SubdomainClaim};
 
 use App\Models\Admin;
@@ -32,6 +31,20 @@ Route::middleware('custom_domain.resolve')->group(function () {
     Route::get('/page/{slug}', [PublicWebsiteController::class, 'showPage'])->name('custom-domain.page');
     Route::get('/tour/{slug}', [PublicWebsiteController::class, 'showTour'])->name('custom-domain.tour');
 });
+
+// Path-based subdomain access (for local development)
+Route::get('/s/{subdomain}', [PublicWebsiteController::class, 'show'])
+    ->name('public.website')
+    ->middleware('subdomain.validate');
+Route::post('/s/{subdomain}/reviews', [ReviewController::class, 'store'])
+    ->name('public.reviews.store')
+    ->middleware('subdomain.validate');
+Route::get('/s/{subdomain}/page/{slug}', [PublicWebsiteController::class, 'showPage'])
+    ->name('public.page')
+    ->middleware('subdomain.validate');
+Route::get('/s/{subdomain}/tour/{slug}', [PublicWebsiteController::class, 'showTour'])
+    ->name('public.tour.path')
+    ->middleware('subdomain.validate');
 
 // Domain-based subdomain access (Production)
 $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: 'adaylink.com';
@@ -51,12 +64,15 @@ Route::get('/', function (Request $request) {
     if ($request->attributes->get('is_custom_domain')) {
         return app(PublicWebsiteController::class)->show($request);
     }
-    // Jika di server pakai WordPress di depan, halaman ini jarang terakses
     return view('welcome');
 })->name('home')->middleware('custom_domain.resolve');
 
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
+
+// Template Demo/Preview routes (public, no auth required)
 Route::get('/demo/{template}', [TemplateDemoController::class, 'show'])->name('demo.template');
+Route::get('/demo/{template}/tour/{slug}', [TemplateDemoController::class, 'showTour'])->name('demo.tour');
+Route::get('/demo/{template}/page/{slug}', [TemplateDemoController::class, 'showPage'])->name('demo.page');
 
 /*
 |--------------------------------------------------------------------------
@@ -72,13 +88,25 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('auth:admin')->group(function () {
         Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
         Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
-        
-        // Resource Management
+        Route::get('/pending-approvals', PendingApprovals::class)->name('pending-approvals');
+
+        // User Management
         Route::get('/users', UserManagement::class)->name('users.index');
+
+        // Subscription Plans CRUD
         Route::get('/plans', SubscriptionPlans::class)->name('plans.index');
-        Route::get('/templates', Templates::class)->name('templates.index');
+        Route::get('/plans/create', SubscriptionPlanForm::class)->name('plans.create');
+        Route::get('/plans/{planId}/edit', SubscriptionPlanForm::class)->name('plans.edit');
+
+        // Stock Images CRUD
         Route::get('/stock-images', StockImages::class)->name('stock-images.index');
-        // ... (Tambahkan route form lainnya di sini)
+        Route::get('/stock-images/create', StockImageForm::class)->name('stock-images.create');
+        Route::get('/stock-images/{imageId}/edit', StockImageForm::class)->name('stock-images.edit');
+
+        // Templates CRUD
+        Route::get('/templates', Templates::class)->name('templates.index');
+        Route::get('/templates/create', TemplateForm::class)->name('templates.create');
+        Route::get('/templates/{templateId}/edit', TemplateForm::class)->name('templates.edit');
     });
 });
 
@@ -89,7 +117,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 | Gunakan prefix 'app' agar tidak bentrok dengan root WordPress
 */
 Route::prefix('app')->group(function () {
-    
+
     // Auth Routes
     Route::middleware('guest:web')->group(function () {
         Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -102,6 +130,32 @@ Route::prefix('app')->group(function () {
     Route::middleware(['auth:web', 'not.blocked'])->group(function () {
         Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+        // Exit impersonation (must be inside auth:web but outside subscription.active)
+        Route::get('/exit-impersonate', function () {
+            $adminId = session('impersonating_admin');
+            if (! $adminId) {
+                return redirect()->route('home');
+            }
+
+            $admin = Admin::find($adminId);
+
+            AuditLog::create([
+                'admin_id' => $adminId,
+                'target_user_id' => auth('web')->id(),
+                'action' => 'Exit Impersonate',
+                'details' => ['user_name' => auth('web')->user()->full_name],
+            ]);
+
+            Auth::guard('web')->logout();
+            session()->forget('impersonating_admin');
+
+            if ($admin) {
+                Auth::guard('admin')->login($admin);
+            }
+
+            return redirect()->route('admin.users.index');
+        })->name('exit-impersonate');
+
         // Onboarding
         Route::get('/onboarding/select-plan', SelectPlan::class)->name('onboarding.select-plan');
         Route::get('/onboarding/subdomain', SubdomainClaim::class)->name('onboarding.subdomain');
@@ -110,20 +164,46 @@ Route::prefix('app')->group(function () {
         // Central Dashboard Redirector
         Route::get('/dashboard', function () {
             $user = auth('web')->user();
+
             if ($user->subscription_status === 'Pending') {
-                return $user->plan_id ? redirect()->route('onboarding.subdomain') : redirect()->route('onboarding.select-plan');
+                if (! $user->plan_id) {
+                    return redirect()->route('onboarding.select-plan');
+                }
+                if (! $user->websites()->exists()) {
+                    return redirect()->route('onboarding.subdomain');
+                }
+                return redirect()->route('onboarding.paywall');
             }
-            return $user->subscription_status === 'Expired' ? view('expired') : redirect()->route('driver.dashboard');
+
+            if ($user->subscription_status === 'Expired') {
+                return view('expired');
+            }
+
+            return redirect()->route('driver.dashboard');
         })->name('dashboard');
 
         // Driver Panel (Active Subscription Only)
         Route::prefix('panel')->name('driver.')->middleware('subscription.active')->group(function () {
             Route::get('/', DriverDashboard::class)->name('dashboard');
             Route::get('/settings', WebsiteSettings::class)->name('settings');
+
+            // Vehicles CRUD
             Route::get('/vehicles', Vehicles::class)->name('vehicles.index');
+            Route::get('/vehicles/create', VehicleForm::class)->name('vehicles.create');
+            Route::get('/vehicles/{vehicleId}/edit', VehicleForm::class)->name('vehicles.edit');
+
+            // Tour Packages CRUD
             Route::get('/tours', TourPackages::class)->name('tours.index');
+            Route::get('/tours/create', TourPackageForm::class)->name('tours.create');
+            Route::get('/tours/{tourId}/edit', TourPackageForm::class)->name('tours.edit');
+
+            // Reviews Management
             Route::get('/reviews', DriverReviews::class)->name('reviews.index');
+
+            // Pages CRUD
             Route::get('/pages', DriverPages::class)->name('pages.index');
+            Route::get('/pages/create', DriverPageForm::class)->name('pages.create');
+            Route::get('/pages/{pageId}/edit', DriverPageForm::class)->name('pages.edit');
         });
     });
 });
