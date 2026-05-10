@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust all proxies (nginx → Docker reverse proxy) so that
+        // url() generates https:// URLs when the original request is HTTPS
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,
             'subdomain.validate' => \App\Http\Middleware\ValidateSubdomain::class,
