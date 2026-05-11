@@ -36,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
         // Laravel at /app/panel), set LIVEWIRE_ROUTE_PREFIX in .env (e.g., "app/panel").
         // This ensures Livewire's JS, update, upload, and preview endpoints are
         // accessible under the same prefix as the rest of the Laravel routes.
-        $prefix = env('LIVEWIRE_ROUTE_PREFIX', '');
+        $prefix = config('app.livewire_route_prefix', '');
         if ($prefix) {
             $this->app->booted(function () use ($prefix) {
                 $prefix = '/' . trim($prefix, '/');

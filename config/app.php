@@ -123,4 +123,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Livewire Route Prefix
+    |--------------------------------------------------------------------------
+    |
+    | When the app is served behind a reverse proxy (e.g., WordPress at root,
+    | Laravel at /app/panel), set this to the route prefix so Livewire's
+    | JavaScript, update, upload, and preview endpoints are accessible.
+    | Example: "app/panel". Leave empty for standard deployment.
+    |
+    */
+
+    'livewire_route_prefix' => env('LIVEWIRE_ROUTE_PREFIX', ''),
+
 ];
