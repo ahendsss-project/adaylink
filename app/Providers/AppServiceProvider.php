@@ -55,13 +55,11 @@ class AppServiceProvider extends ServiceProvider
                     return Route::get($prefix . $scriptPath, $handle);
                 });
 
-                // Register prefixed file upload route
-                Route::post($prefix . EndpointResolver::uploadPath(), [FileUploadController::class, 'handle'])
-                    ->name('livewire.upload-file');
+                // Register prefixed file upload route (no name to avoid conflict with Livewire's built-in route)
+                Route::post($prefix . EndpointResolver::uploadPath(), [FileUploadController::class, 'handle']);
 
-                // Register prefixed file preview route
-                Route::get($prefix . EndpointResolver::previewPath(), [FilePreviewController::class, 'handle'])
-                    ->name('livewire.preview-file');
+                // Register prefixed file preview route (no name to avoid conflict with Livewire's built-in route)
+                Route::get($prefix . EndpointResolver::previewPath(), [FilePreviewController::class, 'handle']);
 
                 // Register prefixed source map routes
                 Route::get($prefix . EndpointResolver::mapPath(csp: false), [FrontendAssets::class, 'maps']);
