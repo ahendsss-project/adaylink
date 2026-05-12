@@ -114,22 +114,34 @@ class WebsiteSettings extends Component
             $setting = WebsiteSetting::create([
                 'website_id' => $website->id,
                 'template_id' => $defaultTemplate?->id,
+                'primary_color' => '#40ac98',
+                'secondary_color' => '#333333',
+                'font_family' => 'Inter',
+                'font_heading' => 'Inter',
+                'font_body' => 'Inter',
             ]);
         }
 
-        // Fill all settings except fields that may be NULL in DB but are typed string here
-        $settingsData = $setting->toArray();
-        unset($settingsData['gallery_images']);
-        unset($settingsData['site_title']);
-        unset($settingsData['secondary_color']);
-        unset($settingsData['font_heading']);
-        unset($settingsData['font_body']);
+        // Fill settings, filtering out null values to avoid TypeError on typed string properties
+        $settingsData = collect($setting->toArray())
+            ->filter(fn($value) => $value !== null)
+            ->toArray();
+        unset($settingsData['gallery_images']); // handled separately as array
         $this->fill($settingsData);
+
+        // Ensure all string-typed properties have defaults (DB may have null)
         $this->site_title = $setting->site_title ?? '';
-        $this->gallery_images = $setting->gallery_images ?? [];
+        $this->primary_color = $setting->primary_color ?? '#40ac98';
         $this->secondary_color = $setting->secondary_color ?? '#333333';
+        $this->font_family = $setting->font_family ?? 'Inter';
         $this->font_heading = $setting->font_heading ?? 'Inter';
         $this->font_body = $setting->font_body ?? 'Inter';
+        $this->hero_title = $setting->hero_title ?? '';
+        $this->hero_subtitle = $setting->hero_subtitle ?? '';
+        $this->hero_image_url = $setting->hero_image_url ?? '';
+        $this->seo_meta_title = $setting->seo_meta_title ?? '';
+        $this->seo_meta_description = $setting->seo_meta_description ?? '';
+        $this->gallery_images = $setting->gallery_images ?? [];
     }
 
     public function addGalleryImage(): void
