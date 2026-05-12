@@ -6,6 +6,7 @@ use App\Models\Template;
 use App\Models\Website;
 use App\Models\WebsiteSetting;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -150,6 +151,11 @@ class WebsiteSettings extends Component
 
     public function save(): void
     {
+        Log::info('WebsiteSettings SAVE called', [
+            'custom_domain' => $this->custom_domain,
+            'customDomainEnabled' => $this->customDomainEnabled,
+        ]);
+
         $this->validate();
 
         // Verify the selected template is allowed for this user's tier
@@ -174,6 +180,12 @@ class WebsiteSettings extends Component
         if ($this->customDomainEnabled) {
             $newDomain = strtolower(trim($this->custom_domain));
             $oldDomain = $website->custom_domain;
+
+            Log::info('Custom domain processing', [
+                'newDomain' => $newDomain,
+                'oldDomain' => $oldDomain,
+                'websiteData_before' => $websiteData,
+            ]);
 
             // Remove protocol and trailing slashes
             $newDomain = preg_replace('#^https?://#', '', $newDomain);
@@ -208,13 +220,22 @@ class WebsiteSettings extends Component
                     : null;
 
                 // Update local state
+                $this->custom_domain = $newDomain;
                 $this->customDomainDnsToken = $websiteData['custom_domain_dns_token'] ?? '';
                 $this->customDomainVerified = false;
             }
         }
 
+        Log::info('About to update website', [
+            'websiteData' => $websiteData,
+        ]);
+
         // Update website fields
         $website->update($websiteData);
+
+        Log::info('Website updated, checking DB', [
+            'custom_domain_in_db' => $website->fresh()->custom_domain,
+        ]);
 
         // Update website settings
         WebsiteSetting::updateOrCreate(
