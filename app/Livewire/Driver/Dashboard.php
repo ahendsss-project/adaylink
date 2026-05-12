@@ -23,7 +23,7 @@ class Dashboard extends Component
 
         // Subscription days remaining
         $daysLeft = $user->subscription_expires_at
-            ? now()->diffInDays($user->subscription_expires_at, false)
+            ? (int) now()->diffInDays($user->subscription_expires_at, false)
             : 0;
 
         // Monthly content activity (last 6 months)
