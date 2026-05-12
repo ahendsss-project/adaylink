@@ -6,7 +6,6 @@ use App\Models\Template;
 use App\Models\Website;
 use App\Models\WebsiteSetting;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -102,24 +101,35 @@ class WebsiteSettings extends Component
         $this->customDomainDnsToken = $website->custom_domain_dns_token ?? '';
         $this->customDomainEnabled = $plan ? $plan->hasFeature('custom_domain') : false;
 
-        // Load website settings
+        // Load website settings — auto-create with a default template if none exists
         $setting = $website->websiteSetting;
 
-        if ($setting) {
-            // Fill all settings except fields that may be NULL in DB but are typed string here
-            $settingsData = $setting->toArray();
-            unset($settingsData['gallery_images']);
-            unset($settingsData['site_title']);
-            unset($settingsData['secondary_color']);
-            unset($settingsData['font_heading']);
-            unset($settingsData['font_body']);
-            $this->fill($settingsData);
-            $this->site_title = $setting->site_title ?? '';
-            $this->gallery_images = $setting->gallery_images ?? [];
-            $this->secondary_color = $setting->secondary_color ?? '#333333';
-            $this->font_heading = $setting->font_heading ?? 'Inter';
-            $this->font_body = $setting->font_body ?? 'Inter';
+        if (! $setting) {
+            // Pick the first active template that matches the user's allowed tier
+            $defaultTemplate = Template::where('is_active', true)
+                ->where('tier', '!=', 'Premium')
+                ->orderBy('name')
+                ->first();
+
+            $setting = WebsiteSetting::create([
+                'website_id' => $website->id,
+                'template_id' => $defaultTemplate?->id,
+            ]);
         }
+
+        // Fill all settings except fields that may be NULL in DB but are typed string here
+        $settingsData = $setting->toArray();
+        unset($settingsData['gallery_images']);
+        unset($settingsData['site_title']);
+        unset($settingsData['secondary_color']);
+        unset($settingsData['font_heading']);
+        unset($settingsData['font_body']);
+        $this->fill($settingsData);
+        $this->site_title = $setting->site_title ?? '';
+        $this->gallery_images = $setting->gallery_images ?? [];
+        $this->secondary_color = $setting->secondary_color ?? '#333333';
+        $this->font_heading = $setting->font_heading ?? 'Inter';
+        $this->font_body = $setting->font_body ?? 'Inter';
     }
 
     public function addGalleryImage(): void
@@ -151,20 +161,7 @@ class WebsiteSettings extends Component
 
     public function save(): void
     {
-        Log::info('WebsiteSettings SAVE called', [
-            'custom_domain' => $this->custom_domain,
-            'customDomainEnabled' => $this->customDomainEnabled,
-            'template_id' => $this->template_id,
-        ]);
-
-        try {
-            $this->validate();
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('WebsiteSettings VALIDATION FAILED', [
-                'errors' => $e->errors(),
-            ]);
-            throw $e;
-        }
+        $this->validate();
 
         // Verify the selected template is allowed for this user's tier
         $selectedTemplate = Template::find($this->template_id);
@@ -188,12 +185,6 @@ class WebsiteSettings extends Component
         if ($this->customDomainEnabled) {
             $newDomain = strtolower(trim($this->custom_domain));
             $oldDomain = $website->custom_domain;
-
-            Log::info('Custom domain processing', [
-                'newDomain' => $newDomain,
-                'oldDomain' => $oldDomain,
-                'websiteData_before' => $websiteData,
-            ]);
 
             // Remove protocol and trailing slashes
             $newDomain = preg_replace('#^https?://#', '', $newDomain);
@@ -234,16 +225,8 @@ class WebsiteSettings extends Component
             }
         }
 
-        Log::info('About to update website', [
-            'websiteData' => $websiteData,
-        ]);
-
         // Update website fields
         $website->update($websiteData);
-
-        Log::info('Website updated, checking DB', [
-            'custom_domain_in_db' => $website->fresh()->custom_domain,
-        ]);
 
         // Update website settings
         WebsiteSetting::updateOrCreate(
