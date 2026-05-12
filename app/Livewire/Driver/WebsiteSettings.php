@@ -154,9 +154,17 @@ class WebsiteSettings extends Component
         Log::info('WebsiteSettings SAVE called', [
             'custom_domain' => $this->custom_domain,
             'customDomainEnabled' => $this->customDomainEnabled,
+            'template_id' => $this->template_id,
         ]);
 
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('WebsiteSettings VALIDATION FAILED', [
+                'errors' => $e->errors(),
+            ]);
+            throw $e;
+        }
 
         // Verify the selected template is allowed for this user's tier
         $selectedTemplate = Template::find($this->template_id);
