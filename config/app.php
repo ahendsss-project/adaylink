@@ -137,4 +137,17 @@ return [
 
     'livewire_route_prefix' => env('LIVEWIRE_ROUTE_PREFIX', ''),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Asset URL
+    |--------------------------------------------------------------------------
+    |
+    | When the app is served from a subdirectory (e.g., /app/panel), set this
+    | to the subdirectory path so that Vite-generated asset URLs (CSS, JS)
+    | are prefixed correctly. Example: "/app/panel".
+    |
+    */
+
+    'asset_url' => env('ASSET_URL', ''),
+
 ];
