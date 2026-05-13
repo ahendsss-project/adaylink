@@ -10,6 +10,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     {{-- Chart.js CDN --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    {{-- Quill WYSIWYG --}}
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <style>
+        .ql-toolbar.ql-snow { border-color: #d1d5db; border-radius: .5rem .5rem 0 0; }
+        .ql-container.ql-snow { border-color: #d1d5db; border-radius: 0 0 .5rem .5rem; font-size: 14px; }
+        .ql-editor.ql-blank::before { color: #9ca3af; font-style: normal; }
+        .ql-editor { line-height: 1.6; }
+    </style>
     <style>
         :root { --brand: #40ac98; --brand-light: #e8f5f1; --brand-dark: #2d8a78; }
     </style>
@@ -203,6 +211,42 @@
         </div>
     </nav>
 
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script>
+        function quillEditor() {
+            return {
+                editor: null,
+                init() {
+                    const el     = this.$el;
+                    const model  = el.dataset.model;
+                    const ph     = el.dataset.placeholder || '';
+                    const height = el.dataset.minHeight   || '150px';
+                    const tbKey  = el.dataset.toolbar     || 'full';
+                    const toolbars = {
+                        full:   [['bold','italic','underline'],[{'list':'ordered'},{'list':'bullet'}],['link'],['clean']],
+                        simple: [['bold','italic'],[{'list':'ordered'},{'list':'bullet'}],['clean']],
+                    };
+                    this.$refs.editor.style.minHeight = height;
+                    this.editor = new Quill(this.$refs.editor, {
+                        theme: 'snow',
+                        placeholder: ph,
+                        modules: { toolbar: toolbars[tbKey] || toolbars.full },
+                    });
+                    const initial = this.$wire.get(model);
+                    if (initial) this.editor.root.innerHTML = initial;
+                    const sync = () => this.$wire.set(model, this.editor.root.innerHTML);
+                    this.editor.on('text-change', () => {
+                        clearTimeout(this._t);
+                        this._t = setTimeout(sync, 500);
+                    });
+                    this.editor.root.addEventListener('blur', () => {
+                        clearTimeout(this._t);
+                        sync();
+                    });
+                },
+            };
+        }
+    </script>
     @livewireScripts
 </body>
 </html>

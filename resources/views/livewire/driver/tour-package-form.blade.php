@@ -80,10 +80,7 @@
             {{-- Description --}}
             <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">Deskripsi Paket Tour</label>
-                <textarea wire:model="description" rows="6"
-                          placeholder="Tulis deskripsi paket tour Anda di sini...&#10;&#10;Contoh:&#10;Paket tour Nusa Penida 2 hari 1 malam termasuk:&#10;- Transportasi PP AC&#10;- Penginapan 1 malam&#10;- Makan sesuai program&#10;- Guide lokal berpengalaman"
-                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"></textarea>
-                @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <x-quill-editor model="description" placeholder="Tulis deskripsi paket tour Anda di sini..." min-height="180px" />
                 <p class="text-gray-400 text-xs mt-1">Tulis deskripsi lengkap tentang paket tour Anda.</p>
             </div>
 
@@ -217,9 +214,7 @@
                 <label class="block text-sm font-medium text-gray-600 mb-1">
                     <span class="inline-flex items-center gap-1"><i class="fas fa-sticky-note text-amber-500"></i> Catatan / Notes</span>
                 </label>
-                <textarea wire:model="notes" rows="3"
-                          placeholder="Catatan tambahan untuk paket tour ini...&#10;Contoh: Minimal 2 orang per booking, berlaku untuk periode low season"
-                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"></textarea>
+                <x-quill-editor model="notes" placeholder="Catatan tambahan untuk paket tour ini..." min-height="100px" toolbar="simple" />
                 <p class="text-gray-400 text-xs mt-1">Informasi tambahan atau syarat & ketentuan paket tour.</p>
             </div>
 
@@ -272,10 +267,7 @@
                         {{-- Translated Description --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">Deskripsi ({{ $localeHint }})</label>
-                            <textarea wire:model="tr.description" rows="4"
-                                      placeholder="Description in {{ $localeHint }}..."
-                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"></textarea>
-                            @error('tr.description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <x-quill-editor model="tr.description" placeholder="Description in {{ $localeHint }}..." min-height="150px" />
                         </div>
 
                         {{-- Translated Itinerary --}}
@@ -372,9 +364,7 @@
                             <label class="block text-sm font-medium text-gray-600 mb-1">
                                 <span class="inline-flex items-center gap-1"><i class="fas fa-sticky-note text-amber-500"></i> Catatan ({{ $localeHint }})</span>
                             </label>
-                            <textarea wire:model="tr.notes" rows="3"
-                                      placeholder="Notes in {{ $localeHint }}..."
-                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"></textarea>
+                            <x-quill-editor model="tr.notes" placeholder="Notes in {{ $localeHint }}..." min-height="100px" toolbar="simple" />
                         </div>
                     </div>
                 </div>

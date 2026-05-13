@@ -55,11 +55,8 @@
 
             {{-- Content --}}
             <div>
-                <label for="content" class="block text-sm font-medium text-gray-600 mb-1">Konten Halaman</label>
-                <textarea wire:model="content" id="content" rows="10"
-                          placeholder="Tulis konten halaman di sini..."
-                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#40ac98] focus:border-[#40ac98] outline-none resize-y"></textarea>
-                @error('content') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <label class="block text-sm font-medium text-gray-600 mb-1">Konten Halaman</label>
+                <x-quill-editor model="content" placeholder="Tulis konten halaman di sini..." min-height="250px" />
             </div>
 
             {{-- Translation Section --}}
@@ -95,10 +92,7 @@
                         {{-- Translated Content --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-600 mb-1">Konten Halaman ({{ $localeHint }})</label>
-                            <textarea wire:model="tr.content" rows="8"
-                                      placeholder="Page content in {{ $localeHint }}..."
-                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#40ac98] focus:border-[#40ac98] outline-none resize-y"></textarea>
-                            @error('tr.content') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <x-quill-editor model="tr.content" placeholder="Page content in {{ $localeHint }}..." min-height="200px" />
                         </div>
                     </div>
                 </div>
