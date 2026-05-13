@@ -75,6 +75,10 @@ class WebsiteSettings extends Component
 
     public string $allowedTier = 'Basic';
 
+    // Subdomain rename
+    public string $subdomain = '';
+    public string $currentSubdomain = '';
+
     public function mount(): void
     {
         $user = Auth::guard('web')->user();
@@ -94,6 +98,8 @@ class WebsiteSettings extends Component
         $this->logo_url = $website->logo_url ?? '';
         $this->contact_whatsapp = $website->contact_whatsapp ?? '';
         $this->default_locale = $website->default_locale ?? 'id';
+        $this->subdomain = $website->subdomain ?? '';
+        $this->currentSubdomain = $website->subdomain ?? '';
 
         // Load custom domain fields
         $this->custom_domain = $website->custom_domain ?? '';
@@ -346,6 +352,45 @@ class WebsiteSettings extends Component
         $this->customDomainVerified = false;
 
         session()->flash('success', 'Custom domain berhasil dihapus.');
+    }
+
+    public function updatedSubdomain(string $value): void
+    {
+        // Auto-format: lowercase, replace spaces with hyphens, remove special chars
+        $this->subdomain = strtolower(preg_replace('/[^a-z0-9\-]/', '', str_replace(' ', '-', $value)));
+    }
+
+    public function updateSubdomain(): void
+    {
+        $this->validate([
+            'subdomain' => 'required|string|min:3|max:50|regex:/^[a-z0-9][a-z0-9\-]*[a-z0-9]$/',
+        ]);
+
+        $user = Auth::guard('web')->user();
+        $website = $user->websites->first();
+
+        // Check if subdomain is the same
+        if ($this->subdomain === $this->currentSubdomain) {
+            session()->flash('info', 'Subdomain tidak berubah.');
+
+            return;
+        }
+
+        // Check uniqueness (exclude current website)
+        $exists = Website::where('subdomain', $this->subdomain)
+            ->where('id', '!=', $website->id)
+            ->exists();
+
+        if ($exists) {
+            $this->addError('subdomain', 'Subdomain ini sudah digunakan. Silakan pilih yang lain.');
+
+            return;
+        }
+
+        $website->update(['subdomain' => $this->subdomain]);
+        $this->currentSubdomain = $this->subdomain;
+
+        session()->flash('success', 'Subdomain berhasil diubah menjadi ' . $this->subdomain . '.' . parse_url(config('app.url'), PHP_URL_HOST));
     }
 
     public function render()

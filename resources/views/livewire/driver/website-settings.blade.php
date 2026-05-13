@@ -338,6 +338,51 @@
             </div>
         </div>
 
+        {{-- Subdomain --}}
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-800">
+                    <i class="fas fa-link mr-2" style="color: var(--brand)"></i>Subdomain
+                </h3>
+                <span class="text-xs text-gray-400">
+                    Alamat website Anda saat ini
+                </span>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Subdomain</label>
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:border-transparent" style="--tw-ring-color: var(--brand)">
+                            <input type="text" wire:model="subdomain"
+                                   class="flex-1 px-3 py-2 text-sm focus:outline-none border-none"
+                                   placeholder="nama-anda" />
+                            <span class="px-3 py-2 bg-gray-50 text-sm text-gray-500 border-l border-gray-300 whitespace-nowrap">
+                                .{{ parse_url(config('app.url'), PHP_URL_HOST) }}
+                            </span>
+                        </div>
+                        <button type="button" wire:click="updateSubdomain"
+                                class="shrink-0 inline-flex items-center gap-1 text-white text-sm font-medium px-4 py-2 rounded-lg transition hover:opacity-90"
+                                style="background: var(--brand)">
+                            <i class="fas fa-save"></i> Simpan
+                        </button>
+                    </div>
+                    @error('subdomain') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <p class="text-xs text-gray-400 mt-1">
+                        Hanya huruf kecil, angka, dan tanda hubung (-). Minimal 3 karakter.
+                        Contoh: <code class="bg-gray-100 px-1 rounded">bali-paradise</code> → <code class="bg-gray-100 px-1 rounded">bali-paradise.{{ parse_url(config('app.url'), PHP_URL_HOST) }}</code>
+                    </p>
+                </div>
+
+                @if ($currentSubdomain)
+                    <div class="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                        <i class="fas fa-globe"></i>
+                        <span>Website Anda: <strong class="text-gray-700">{{ $currentSubdomain }}.{{ parse_url(config('app.url'), PHP_URL_HOST) }}</strong></span>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         {{-- Custom Domain --}}
         @if ($customDomainEnabled)
         <div class="bg-white rounded-xl border border-gray-200 p-5">
