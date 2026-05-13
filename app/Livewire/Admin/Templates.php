@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\SubscriptionPlan;
 use App\Models\Template;
 use Livewire\Component;
 
@@ -34,8 +35,9 @@ class Templates extends Component
     public function render()
     {
         $templates = Template::orderBy('tier', 'asc')->orderBy('name', 'asc')->get();
+        $plans = SubscriptionPlan::orderBy('price')->pluck('name', 'id');
 
-        return view('livewire.admin.templates', compact('templates'))
+        return view('livewire.admin.templates', compact('templates', 'plans'))
             ->layout('components.layouts.admin')
             ->title('Manage Templates - Admin adaylink');
     }

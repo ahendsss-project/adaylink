@@ -37,15 +37,51 @@
                 <p class="text-gray-400 text-xs mt-1">Nama folder fisik di <code>resources/views/templates/</code></p>
             </div>
 
-            {{-- Tier --}}
+            {{-- Tier Label --}}
             <div>
-                <label for="tier" class="block text-sm font-medium text-gray-600 mb-1">Tier *</label>
+                <label for="tier" class="block text-sm font-medium text-gray-600 mb-1">Label Tier *</label>
                 <select wire:model="tier" id="tier"
                         class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white">
-                    <option value="Basic">Basic — Tersedia untuk semua paket</option>
-                    <option value="Premium">Premium — Hanya untuk paket Pro Agent+</option>
+                    <option value="Basic">Basic</option>
+                    <option value="Premium">Premium</option>
                 </select>
                 @error('tier') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <p class="text-gray-400 text-xs mt-1">Label untuk tampilan (tidak mengontrol akses — akses diatur melalui Paket di bawah)</p>
+            </div>
+
+            {{-- Plan Access --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Dapat Diakses oleh Paket</label>
+                @if ($plans->isEmpty())
+                    <p class="text-sm text-gray-400 italic">Belum ada paket aktif. Buat paket langganan terlebih dahulu.</p>
+                @else
+                    <div class="space-y-2 border border-gray-200 rounded-lg p-3 bg-gray-50">
+                        @foreach ($plans as $plan)
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    wire:model="allowed_plan_ids"
+                                    value="{{ $plan->id }}"
+                                    class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                />
+                                <div class="flex items-center gap-2 flex-1">
+                                    <span class="text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition">
+                                        {{ $plan->name }}
+                                    </span>
+                                    <span class="text-xs text-gray-400">
+                                        Rp {{ number_format($plan->price, 0, ',', '.') }}
+                                    </span>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                    <p class="text-gray-400 text-xs mt-1.5">
+                        <svg class="w-3.5 h-3.5 inline mr-0.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                        Jika tidak ada paket yang dipilih, template dapat diakses oleh <strong>semua paket</strong>.
+                    </p>
+                @endif
             </div>
 
             {{-- Thumbnail --}}

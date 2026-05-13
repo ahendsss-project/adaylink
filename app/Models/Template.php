@@ -13,6 +13,7 @@ class Template extends Model
         'thumbnail_url',
         'is_active',
         'config_schema',
+        'allowed_plan_ids',
     ];
 
     /**
@@ -25,7 +26,25 @@ class Template extends Model
         return [
             'is_active' => 'boolean',
             'config_schema' => 'array',
+            'allowed_plan_ids' => 'array',
         ];
+    }
+
+    /**
+     * Check if this template is accessible by a given plan.
+     * If allowed_plan_ids is empty/null, the template is accessible by all plans.
+     */
+    public function isAccessibleByPlan(?int $planId): bool
+    {
+        if (empty($this->allowed_plan_ids)) {
+            return true;
+        }
+
+        if ($planId === null) {
+            return false;
+        }
+
+        return in_array($planId, $this->allowed_plan_ids);
     }
 
     /**

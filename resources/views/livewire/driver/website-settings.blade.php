@@ -20,72 +20,48 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-semibold text-gray-800"><i class="fas fa-palette mr-2" style="color: var(--brand)"></i>Pilih Template</h3>
                 <span class="text-xs font-medium px-2 py-1 rounded-full" style="background: var(--brand-light); color: var(--brand-dark)">
-                    Paket: {{ $allowedTier === 'All' ? 'Semua Tier' : $allowedTier }}
+                    Paket: {{ $allowedTier }}
                 </span>
             </div>
 
-            @php
-                $canAccessPremium = $allowedTier === 'All' || $allowedTier === 'Premium';
-            @endphp
-
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 @foreach ($templates as $template)
-                    @php
-                        $isLocked = $template->tier === 'Premium' && !$canAccessPremium;
-                    @endphp
-
-                    @if ($isLocked)
-                        <div class="relative border-2 rounded-xl p-4 text-center border-gray-200 bg-gray-50 opacity-75 cursor-not-allowed">
-                            <div class="absolute top-2 right-2">
-                                <span class="inline-flex items-center gap-1 text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full">
-                                    <i class="fas fa-lock text-[10px]"></i> Premium
-                                </span>
-                            </div>
+                    <label class="cursor-pointer group relative">
+                        <input type="radio" wire:model="template_id" value="{{ $template->id }}" class="hidden peer" />
+                        <div class="border-2 rounded-xl p-4 text-center transition peer-checked:border-[var(--brand)] peer-checked:bg-[var(--brand-light)] peer-checked:shadow-md @error('template_id') border-red-300 @enderror border-gray-200 hover:border-gray-300 group-hover:border-gray-300">
+                            @if ($template->tier === 'Premium')
+                                <div class="mb-2">
+                                    <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">⭐ Premium</span>
+                                </div>
+                            @endif
                             @if ($template->thumbnail_url)
                                 <img src="{{ upload_url($template->thumbnail_url) }}" alt="{{ $template->name }}"
-                                     class="w-full h-20 object-cover rounded-lg mb-2 grayscale" />
+                                     class="w-full h-20 object-cover rounded-lg mb-2" />
                             @else
-                                <div class="w-full h-20 bg-gray-200 rounded-lg mb-2 flex items-center justify-center">
+                                <div class="w-full h-20 bg-gray-100 rounded-lg mb-2 flex items-center justify-center">
                                     <i class="fas fa-image text-2xl text-gray-300"></i>
                                 </div>
                             @endif
-                            <p class="text-sm font-medium text-gray-400">{{ $template->name }}</p>
-                            <p class="text-xs text-amber-600 mt-1 font-medium">Upgrade paket untuk membuka</p>
+                            <p class="text-sm font-medium text-gray-700">{{ $template->name }}</p>
+                            @if ($template->folder_name)
+                                <p class="text-xs text-gray-400 font-mono mt-0.5">{{ $template->folder_name }}</p>
+                            @endif
                         </div>
-                    @else
-                        <label class="cursor-pointer group relative">
-                            <input type="radio" wire:model="template_id" value="{{ $template->id }}" class="hidden peer" />
-                            <div class="border-2 rounded-xl p-4 text-center transition peer-checked:border-[var(--brand)] peer-checked:bg-[var(--brand-light)] peer-checked:shadow-md @error('template_id') border-red-300 @enderror border-gray-200 hover:border-gray-300 group-hover:border-gray-300">
-                                @if ($template->tier === 'Premium')
-                                    <div class="mb-2">
-                                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">⭐ Premium</span>
-                                    </div>
-                                @endif
-                                @if ($template->thumbnail_url)
-                                    <img src="{{ upload_url($template->thumbnail_url) }}" alt="{{ $template->name }}"
-                                         class="w-full h-20 object-cover rounded-lg mb-2" />
-                                @else
-                                    <div class="w-full h-20 bg-gray-100 rounded-lg mb-2 flex items-center justify-center">
-                                        <i class="fas fa-image text-2xl text-gray-300"></i>
-                                    </div>
-                                @endif
-                                <p class="text-sm font-medium text-gray-700">{{ $template->name }}</p>
-                                @if ($template->folder_name)
-                                    <p class="text-xs text-gray-400 font-mono mt-0.5">{{ $template->folder_name }}</p>
-                                @endif
-                            </div>
-                            <a href="{{ route('demo.template', $template->folder_name) }}" target="_blank" rel="noopener"
-                               onclick="event.stopPropagation()"
-                               class="absolute top-2 right-2 text-xs bg-white/90 hover:bg-white text-gray-600 hover:text-[var(--brand)] px-2 py-1 rounded-md shadow-sm border border-gray-200 transition z-10"
-                               title="Preview template">
-                                <i class="fas fa-external-link-alt mr-0.5"></i> Demo
-                            </a>
-                        </label>
-                    @endif
+                        <a href="{{ route('demo.template', $template->folder_name) }}" target="_blank" rel="noopener"
+                           onclick="event.stopPropagation()"
+                           class="absolute top-2 right-2 text-xs bg-white/90 hover:bg-white text-gray-600 hover:text-[var(--brand)] px-2 py-1 rounded-md shadow-sm border border-gray-200 transition z-10"
+                           title="Preview template">
+                            <i class="fas fa-external-link-alt mr-0.5"></i> Demo
+                        </a>
+                    </label>
                 @endforeach
 
                 @if ($templates->isEmpty())
-                    <p class="text-sm text-gray-400 col-span-full">Belum ada template tersedia.</p>
+                    <p class="text-sm text-gray-500 col-span-full text-center py-6">
+                        <i class="fas fa-lock mr-2 text-gray-400"></i>
+                        Tidak ada template yang tersedia untuk paket Anda.<br>
+                        <span class="text-xs text-gray-400 mt-1 block">Silakan hubungi admin atau upgrade paket.</span>
+                    </p>
                 @endif
             </div>
 

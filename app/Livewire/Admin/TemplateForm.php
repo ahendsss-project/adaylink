@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\SubscriptionPlan;
 use App\Models\Template;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -31,6 +32,9 @@ class TemplateForm extends Component
     #[Validate('nullable|file|mimes:jpg,jpeg,png,webp|max:1024')]
     public $thumbnail_image = null;
 
+    /** @var array<int, int> Plan IDs that can access this template. Empty = all plans. */
+    public array $allowed_plan_ids = [];
+
     public bool $isEditing = false;
 
     public function mount(?int $templateId = null): void
@@ -44,6 +48,7 @@ class TemplateForm extends Component
                 'tier' => $this->template->tier,
                 'is_active' => $this->template->is_active,
             ]);
+            $this->allowed_plan_ids = array_map('intval', $this->template->allowed_plan_ids ?? []);
             $this->isEditing = true;
         }
     }
@@ -69,6 +74,7 @@ class TemplateForm extends Component
             'thumbnail_url' => $this->thumbnail_url,
             'tier' => $this->tier,
             'is_active' => $this->is_active,
+            'allowed_plan_ids' => !empty($this->allowed_plan_ids) ? array_values($this->allowed_plan_ids) : null,
         ];
 
         if ($this->isEditing) {
@@ -84,7 +90,9 @@ class TemplateForm extends Component
 
     public function render()
     {
-        return view('livewire.admin.template-form')
+        $plans = SubscriptionPlan::where('is_active', true)->orderBy('price')->get();
+
+        return view('livewire.admin.template-form', compact('plans'))
             ->layout('components.layouts.admin')
             ->title(($this->isEditing ? 'Edit' : 'Tambah') . ' Template - Admin adaylink');
     }

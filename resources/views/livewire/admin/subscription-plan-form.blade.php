@@ -48,16 +48,22 @@
                 </div>
             </div>
 
-            {{-- Template Tier --}}
+            {{-- Template Access (legacy label, access now controlled per-template) --}}
             <div>
-                <label class="block text-sm font-medium text-gray-600 mb-1">Akses Template *</label>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Label Tier Template</label>
                 <select wire:model="allowed_template_tier"
                         class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                    <option value="Basic">Basic saja</option>
-                    <option value="Premium">Premium saja</option>
-                    <option value="All">Semua (Basic + Premium)</option>
+                    <option value="Basic">Basic</option>
+                    <option value="Premium">Premium</option>
+                    <option value="All">All</option>
                 </select>
                 @error('allowed_template_tier') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <p class="text-gray-400 text-xs mt-1">
+                    <svg class="w-3.5 h-3.5 inline text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                    Akses template sekarang dikonfigurasi langsung di masing-masing template (Manage Templates → Edit Template → Dapat Diakses oleh Paket).
+                </p>
             </div>
 
             {{-- Active --}}

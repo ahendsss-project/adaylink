@@ -79,7 +79,8 @@ class WebsiteSettings extends Component
     public bool $customDomainVerified = false;
     public string $customDomainDnsToken = '';
 
-    public string $allowedTier = 'Basic';
+    public string $allowedTier = 'Basic'; // kept for display (plan name)
+    public ?int $userPlanId = null;
 
     // Subdomain rename
     public string $subdomain = '';
@@ -103,9 +104,9 @@ class WebsiteSettings extends Component
             return;
         }
 
-        // Determine allowed template tier from user's plan
         $plan = $user->plan;
-        $this->allowedTier = $plan ? $plan->allowed_template_tier : 'Basic';
+        $this->allowedTier = $plan ? $plan->name : '—';
+        $this->userPlanId = $plan?->id;
 
         // Determine multilanguage availability
         $this->multilanguageEnabled = $plan ? $plan->hasFeature('multilanguage') : false;
@@ -129,11 +130,11 @@ class WebsiteSettings extends Component
         $setting = $website->websiteSetting;
 
         if (! $setting) {
-            // Pick the first active template that matches the user's allowed tier
+            // Pick the first active template accessible by the user's plan
             $defaultTemplate = Template::where('is_active', true)
-                ->where('tier', '!=', 'Premium')
                 ->orderBy('name')
-                ->first();
+                ->get()
+                ->first(fn ($t) => $t->isAccessibleByPlan($this->userPlanId));
 
             $setting = WebsiteSetting::create([
                 'website_id' => $website->id,
@@ -263,10 +264,10 @@ class WebsiteSettings extends Component
             $this->hero_image_file = null;
         }
 
-        // Verify the selected template is allowed for this user's tier
+        // Verify the selected template is accessible by the user's plan
         $selectedTemplate = Template::find($this->template_id);
-        if ($selectedTemplate && $selectedTemplate->tier === 'Premium' && $this->allowedTier !== 'All' && $this->allowedTier !== 'Premium') {
-            session()->flash('error', 'Anda tidak bisa memilih template Premium. Silakan upgrade paket Anda.');
+        if ($selectedTemplate && ! $selectedTemplate->isAccessibleByPlan($this->userPlanId)) {
+            session()->flash('error', 'Template ini tidak tersedia untuk paket Anda. Silakan pilih template lain atau upgrade paket.');
 
             return;
         }
@@ -506,10 +507,13 @@ class WebsiteSettings extends Component
 
     public function render()
     {
+        $planId = $this->userPlanId;
         $templates = Template::where('is_active', true)
             ->orderBy('tier', 'asc')
             ->orderBy('name', 'asc')
-            ->get();
+            ->get()
+            ->filter(fn ($t) => $t->isAccessibleByPlan($planId))
+            ->values();
 
         return view('livewire.driver.website-settings', compact('templates'))
             ->layout('components.layouts.driver')

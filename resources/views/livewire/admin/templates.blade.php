@@ -46,7 +46,7 @@
                         <tr>
                             <th class="text-left px-4 py-3 font-medium text-gray-600">Template</th>
                             <th class="text-left px-4 py-3 font-medium text-gray-600">Folder</th>
-                            <th class="text-center px-4 py-3 font-medium text-gray-600">Tier</th>
+                            <th class="text-center px-4 py-3 font-medium text-gray-600">Tier / Akses Paket</th>
                             <th class="text-center px-4 py-3 font-medium text-gray-600">Status</th>
                             <th class="text-center px-4 py-3 font-medium text-gray-600">Digunakan</th>
                             <th class="text-right px-4 py-3 font-medium text-gray-600">Aksi</th>
@@ -74,15 +74,32 @@
                                     <code class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-mono">{{ $template->folder_name ?? '-' }}</code>
                                 </td>
                                 <td class="px-4 py-3 text-center">
+                                    {{-- Tier label --}}
                                     @if ($template->tier === 'Premium')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mb-1">
                                             ⭐ Premium
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 mb-1">
                                             Basic
                                         </span>
                                     @endif
+                                    {{-- Accessible plans --}}
+                                    <div class="mt-1">
+                                        @if (empty($template->allowed_plan_ids))
+                                            <span class="text-xs text-green-600 font-medium">Semua paket</span>
+                                        @else
+                                            <div class="flex flex-wrap gap-1 justify-center">
+                                                @foreach ($template->allowed_plan_ids as $planId)
+                                                    @if (isset($plans[$planId]))
+                                                        <span class="text-xs bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-medium">
+                                                            {{ $plans[$planId] }}
+                                                        </span>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <button wire:click="toggleActive({{ $template->id }})"
