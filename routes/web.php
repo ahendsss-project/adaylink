@@ -14,7 +14,7 @@ use App\Http\Controllers\PublicWebsiteController;
 use App\Http\Controllers\ReviewController;
 
 // Import Livewire Components
-use App\Livewire\Admin\{PendingApprovals, UserManagement, StockImageForm, StockImages, SubscriptionPlanForm, SubscriptionPlans, TemplateForm, Templates};
+use App\Livewire\Admin\{PendingApprovals, UserManagement, StockImageForm, StockImages, SubscriptionPlanForm, SubscriptionPlans, TemplateForm, Templates, PlatformSettings};
 use App\Livewire\Driver\{Dashboard as DriverDashboard, PageForm as DriverPageForm, Pages as DriverPages, Reviews as DriverReviews, TourPackageForm, TourPackages, VehicleForm, Vehicles, WebsiteSettings};
 use App\Livewire\Onboarding\{Paywall, SelectPlan, SubdomainClaim};
 
@@ -102,6 +102,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/templates', Templates::class)->name('templates.index');
         Route::get('/templates/create', TemplateForm::class)->name('templates.create');
         Route::get('/templates/{templateId}/edit', TemplateForm::class)->name('templates.edit');
+
+        // Platform Settings
+        Route::get('/platform-settings', PlatformSettings::class)->name('platform-settings');
     });
 });
 

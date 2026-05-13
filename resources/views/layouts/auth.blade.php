@@ -10,10 +10,15 @@
 <body class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
     <div class="w-full max-w-md">
         {{-- Logo / Brand --}}
+        @php $platformConfig = \App\Models\PlatformConfig::first(); @endphp
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">
-                <span class="text-indigo-600">a</span>daylink
-            </h1>
+            @if ($platformConfig?->main_logo_url)
+                <img src="{{ $platformConfig->main_logo_url }}" alt="{{ $platformConfig->app_name ?? 'adaylink' }}" class="h-12 w-auto mx-auto mb-2" />
+            @else
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <span class="text-indigo-600">a</span>{{ $platformConfig->app_name ?? 'daylink' }}
+                </h1>
+            @endif
             <p class="text-gray-500 mt-1 text-sm">@yield('subtitle', '')</p>
         </div>
 

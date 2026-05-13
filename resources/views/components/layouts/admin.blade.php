@@ -19,9 +19,14 @@
         {{-- Sidebar --}}
         <aside class="w-64 bg-white border-r border-gray-200 min-h-screen fixed left-0 top-0 z-40">
             {{-- Brand --}}
+            @php $platformConfig = \App\Models\PlatformConfig::first(); @endphp
             <div class="px-6 py-5 border-b border-gray-100">
-                <h1 class="text-xl font-bold">
-                    <span style="color: var(--brand)">a</span>daylink
+                <h1 class="text-xl font-bold flex items-center gap-2">
+                    @if ($platformConfig?->main_logo_url)
+                        <img src="{{ $platformConfig->main_logo_url }}" alt="{{ $platformConfig->app_name ?? 'adaylink' }}" class="h-8 w-auto" />
+                    @else
+                        <span style="color: var(--brand)">a</span>daylink
+                    @endif
                     <span class="text-xs font-normal text-gray-400 ml-1">Admin</span>
                 </h1>
             </div>
@@ -96,9 +101,13 @@
                     Blog Posts
                 </a>
 
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-50 transition">
+                <a href="{{ route('admin.platform-settings') }}" @class([
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition',
+                    'text-white' => request()->routeIs('admin.platform-settings'),
+                    'text-gray-600 hover:bg-gray-50' => !request()->routeIs('admin.platform-settings'),
+                ]) style="{{ request()->routeIs('admin.platform-settings') ? 'background: var(--brand)' : '' }}">
                     <i class="fa-solid fa-gear w-5 text-center"></i>
-                    Settings
+                    Platform Settings
                 </a>
             </nav>
         </aside>

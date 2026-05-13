@@ -37,10 +37,15 @@
     @endif
 
     {{-- Mobile Top Bar --}}
+    @php $platformConfig = \App\Models\PlatformConfig::first(); @endphp
     <header class="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-        <h1 class="text-lg font-bold text-gray-800">
-            <span style="color: var(--brand)">a</span>daylink
-        </h1>
+        @if ($platformConfig?->main_logo_url)
+            <img src="{{ $platformConfig->main_logo_url }}" alt="{{ $platformConfig->app_name ?? 'adaylink' }}" class="h-8 w-auto" />
+        @else
+            <h1 class="text-lg font-bold text-gray-800">
+                <span style="color: var(--brand)">a</span>daylink
+            </h1>
+        @endif
         <div class="flex items-center gap-2">
             <span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background: var(--brand-light); color: var(--brand-dark)">{{ auth('web')->user()->plan?->name ?? auth('web')->user()->subscription_plan }}</span>
         </div>
@@ -51,9 +56,13 @@
         <aside class="hidden md:block w-64 bg-white border-r border-gray-200 min-h-screen fixed left-0 top-0">
             {{-- Brand --}}
             <div class="px-6 py-5 border-b border-gray-100">
-                <h1 class="text-xl font-bold text-gray-800">
-                    <span style="color: var(--brand)">a</span>daylink
-                </h1>
+                @if ($platformConfig?->main_logo_url)
+                    <img src="{{ $platformConfig->main_logo_url }}" alt="{{ $platformConfig->app_name ?? 'adaylink' }}" class="h-9 w-auto" />
+                @else
+                    <h1 class="text-xl font-bold text-gray-800">
+                        <span style="color: var(--brand)">a</span>daylink
+                    </h1>
+                @endif
                 <p class="text-xs text-gray-400 mt-0.5">Driver Dashboard</p>
             </div>
 
