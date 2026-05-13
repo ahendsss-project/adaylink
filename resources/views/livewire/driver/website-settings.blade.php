@@ -106,18 +106,15 @@
                     <p class="text-xs text-gray-400 mt-1">Nama yang tampil di navbar, footer, dan judul tab browser</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-600 mb-1">Logo URL</label>
-                    <input type="text" wire:model="logo_url"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-                           style="--tw-ring-color: var(--brand)"
-                           placeholder="https://example.com/logo.png" />
-                    @error('logo_url') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    @if ($logo_url)
-                        <div class="mt-2">
-                            <img src="{{ $logo_url }}" alt="Logo Preview" class="h-12 w-12 rounded-lg object-cover border border-gray-200" />
-                        </div>
-                    @endif
-                    <p class="text-xs text-gray-400 mt-1">Masukkan URL gambar logo Anda (PNG/JPG, rasio 1:1 disarankan)</p>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Logo</label>
+                    <x-media-input
+                        url-model="logo_url"
+                        file-model="logo_file"
+                        placeholder="https://example.com/logo.png"
+                        preview-class="h-12 w-12 object-cover"
+                        :preview-url="$logo_file ? $logo_file->temporaryUrl() : ($logo_url ?: null)"
+                    />
+                    <p class="text-xs text-gray-400 mt-1">PNG/JPG/WEBP, rasio 1:1 disarankan</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">Nomor WhatsApp</label>
@@ -266,13 +263,14 @@
                     <textarea wire:model="hero_subtitle" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Nikmati perjalanan terbaik bersama kami..."></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-600 mb-1">URL Gambar Hero</label>
-                    <input type="text" wire:model="hero_image_url" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="https://example.com/banner.jpg" />
-                    @if ($hero_image_url)
-                        <div class="mt-2">
-                            <img src="{{ $hero_image_url }}" alt="Hero Preview" class="h-24 rounded-lg object-cover border border-gray-200" />
-                        </div>
-                    @endif
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Gambar Hero</label>
+                    <x-media-input
+                        url-model="hero_image_url"
+                        file-model="hero_image_file"
+                        placeholder="https://example.com/banner.jpg"
+                        preview-class="w-full h-24 object-cover"
+                        :preview-url="$hero_image_file ? $hero_image_file->temporaryUrl() : ($hero_image_url ?: null)"
+                    />
                 </div>
             </div>
         </div>
@@ -289,15 +287,19 @@
             @endif
 
             {{-- Add Image --}}
-            <div class="flex gap-2 mb-4">
-                <input type="text" wire:model="new_gallery_image"
-                       class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-                       style="--tw-ring-color: var(--brand)"
-                       placeholder="https://example.com/gambar.jpg" />
+            <div class="mb-4">
+                <x-media-input
+                    url-model="new_gallery_image"
+                    file-model="new_gallery_image_file"
+                    placeholder="https://example.com/gambar.jpg"
+                    preview-class="w-24 h-16 object-cover"
+                    :preview-url="$new_gallery_image_file ? $new_gallery_image_file->temporaryUrl() : null"
+                />
+                @error('new_gallery_image') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 <button type="button" wire:click="addGalleryImage"
-                        class="shrink-0 inline-flex items-center gap-1.5 text-white text-sm font-medium px-4 py-2 rounded-lg transition hover:opacity-90"
+                        class="mt-2 inline-flex items-center gap-1.5 text-white text-sm font-medium px-4 py-2 rounded-lg transition hover:opacity-90"
                         style="background: var(--brand)">
-                    <i class="fas fa-plus"></i> Tambah
+                    <i class="fas fa-plus"></i> Tambah Gambar
                 </button>
             </div>
 

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterController extends Controller
 {
@@ -25,19 +26,15 @@ class RegisterController extends Controller
     {
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'password' => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed',
-                'regex:/[A-Z]/',      // at least one uppercase letter
-                'regex:/[0-9]/',      // at least one number
-                'regex:/[^A-Za-z0-9]/', // at least one special character
-            ],
+            'email'     => ['required', 'email', 'unique:users,email'],
+            'phone'     => ['nullable', 'string', 'max:20'],
+            'password'  => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
         ], [
-            'password.regex' => 'Password harus mengandung setidaknya satu huruf besar, satu angka, dan satu karakter khusus.',
+            'full_name.required' => 'Nama lengkap wajib diisi.',
+            'email.required'     => 'Email wajib diisi.',
+            'email.unique'       => 'Email sudah terdaftar.',
+            'password.required'  => 'Password wajib diisi.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
         $user = User::create([

@@ -23,7 +23,7 @@ class StockImageForm extends Component
     #[Validate('required|string|max:255')]
     public string $alt_text = '';
 
-    #[Validate('required|image|max:5120')]
+    #[Validate('required|file|mimes:jpg,jpeg,png,webp|max:1024|dimensions:min_width=100,min_height=100')]
     public $image = null;
 
     public bool $isEditing = false;

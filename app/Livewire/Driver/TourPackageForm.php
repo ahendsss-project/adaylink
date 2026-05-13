@@ -5,13 +5,14 @@ namespace App\Livewire\Driver;
 use App\Models\StockImage;
 use App\Models\TourPackage;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class TourPackageForm extends Component
 {
+    use WithFileUploads;
     public ?TourPackage $tourPackage = null;
 
     #[Validate('required|string|max:255')]
@@ -31,6 +32,8 @@ class TourPackageForm extends Component
 
     #[Validate('nullable|string|max:255')]
     public string $thumbnail_url = '';
+
+    public $thumbnail_file = null;
 
     /** @var array<int, string> */
     public array $itinerary_items = [];
@@ -151,9 +154,21 @@ class TourPackageForm extends Component
         }
     }
 
+    public function updatedThumbnailFile(): void
+    {
+        $this->validateOnly('thumbnail_file', [
+            'thumbnail_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:1024', 'dimensions:min_width=50,min_height=50'],
+        ], [
+            'thumbnail_file.mimes' => 'Format gambar harus WEBP, PNG, atau JPG.',
+            'thumbnail_file.max' => 'Ukuran gambar maksimal 1 MB.',
+            'thumbnail_file.dimensions' => 'Dimensi gambar minimal 50×50 piksel.',
+        ]);
+    }
+
     public function selectStockImage(string $url): void
     {
         $this->thumbnail_url = upload_url($url);
+        $this->thumbnail_file = null;
     }
 
     // Itinerary management
@@ -246,7 +261,7 @@ class TourPackageForm extends Component
             'price_start_from' => 'nullable|numeric|min:0',
             'duration_text' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'thumbnail_url' => 'nullable|string|max:255|url',
+            'thumbnail_url' => 'nullable|string|max:500',
             'itinerary_items' => 'nullable|array',
             'itinerary_items.*' => 'nullable|string',
             'include_items' => 'nullable|array',
@@ -283,6 +298,18 @@ class TourPackageForm extends Component
         }
 
         $this->validate($rules);
+
+        if ($this->thumbnail_file) {
+            $this->validate([
+                'thumbnail_file' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:1024', 'dimensions:min_width=50,min_height=50'],
+            ], [
+                'thumbnail_file.mimes' => 'Format gambar harus WEBP, PNG, atau JPG.',
+                'thumbnail_file.max' => 'Ukuran gambar maksimal 1 MB.',
+                'thumbnail_file.dimensions' => 'Dimensi gambar minimal 50×50 piksel.',
+            ]);
+            $this->thumbnail_url = upload_url(upload_store('tour-packages', $this->thumbnail_file));
+            $this->thumbnail_file = null;
+        }
 
         $website = Auth::guard('web')->user()->websites->first();
 

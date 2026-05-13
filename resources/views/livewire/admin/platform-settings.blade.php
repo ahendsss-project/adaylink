@@ -38,55 +38,31 @@
                 {{-- Logo Upload --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">Logo Platform</label>
-                    <div class="space-y-3">
-                        {{-- File Upload --}}
-                        <div class="flex items-center gap-3">
-                            <input type="file" wire:model="logo_file" accept="image/*"
-                                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                    <x-media-input
+                        url-model="main_logo_url"
+                        file-model="logo_file"
+                        placeholder="https://example.com/logo.png"
+                        preview-class="h-12 w-auto object-contain"
+                        :preview-url="$logo_file ? $logo_file->temporaryUrl() : ($main_logo_url ?: null)"
+                    />
+                    @if ($main_logo_url && !$logo_file)
+                        <div class="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-3">
+                            <img src="{{ $main_logo_url }}" alt="Logo" class="h-8 w-auto rounded" />
+                            <img src="{{ $main_logo_url }}" alt="Logo Tiny" class="h-5 w-auto rounded" />
                         </div>
-                        @error('logo_file') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-
-                        {{-- OR --}}
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs text-gray-400">atau URL:</span>
-                            <input type="text" wire:model="main_logo_url"
-                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-                                   style="--tw-ring-color: var(--brand)"
-                                   placeholder="https://example.com/logo.png" />
-                        </div>
-                        @error('main_logo_url') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-
-                        {{-- Upload Progress --}}
-                        <div wire:loading wire:target="logo_file">
-                            <div class="flex items-center gap-2 text-sm text-blue-600">
-                                <i class="fas fa-spinner fa-spin"></i> Mengupload...
-                            </div>
-                        </div>
-
-                        {{-- Logo Preview --}}
-                        @if ($main_logo_url)
-                            <div class="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
-                                <p class="text-xs text-gray-500 mb-2">Preview Logo:</p>
-                                <div class="flex items-center gap-4">
-                                    <img src="{{ $main_logo_url }}" alt="Logo" class="h-12 w-auto rounded" />
-                                    <img src="{{ $main_logo_url }}" alt="Logo Small" class="h-8 w-auto rounded" />
-                                    <img src="{{ $main_logo_url }}" alt="Logo Tiny" class="h-6 w-auto rounded" />
-                                </div>
-                            </div>
-                        @endif
-
-                        <p class="text-xs text-gray-400">Format: PNG/JPG/SVG. Disarankan rasio 1:1. Maks 2MB.</p>
-                    </div>
+                    @endif
                 </div>
 
                 {{-- Favicon --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-600 mb-1">Favicon URL</label>
-                    <input type="text" wire:model="favicon_url"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-                           style="--tw-ring-color: var(--brand)"
-                           placeholder="https://example.com/favicon.ico" />
-                    @error('favicon_url') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Favicon</label>
+                    <x-media-input
+                        url-model="favicon_url"
+                        file-model="favicon_file"
+                        placeholder="https://example.com/favicon.ico"
+                        preview-class="w-8 h-8 object-contain"
+                        :preview-url="$favicon_file ? $favicon_file->temporaryUrl() : ($favicon_url ?: null)"
+                    />
                 </div>
             </div>
         </div>

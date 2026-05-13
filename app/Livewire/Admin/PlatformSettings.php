@@ -5,7 +5,6 @@ namespace App\Livewire\Admin;
 use App\Models\PlatformConfig;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Storage;
 
 class PlatformSettings extends Component
 {
@@ -21,6 +20,7 @@ class PlatformSettings extends Component
     public bool $maintenance_mode = false;
 
     public $logo_file = null;
+    public $favicon_file = null;
 
     public function mount(): void
     {
@@ -38,10 +38,21 @@ class PlatformSettings extends Component
         }
     }
 
+    private string $fileRules = 'nullable|file|mimes:jpg,jpeg,png,webp|max:1024|dimensions:min_width=16,min_height=16';
+
     public function updatedLogoFile(): void
     {
-        $this->validate([
-            'logo_file' => 'image|max:2048',
+        $this->validateOnly('logo_file', ['logo_file' => $this->fileRules], [
+            'logo_file.mimes' => 'Format gambar harus WEBP, PNG, atau JPG.',
+            'logo_file.max' => 'Ukuran gambar maksimal 1 MB.',
+        ]);
+    }
+
+    public function updatedFaviconFile(): void
+    {
+        $this->validateOnly('favicon_file', ['favicon_file' => $this->fileRules], [
+            'favicon_file.mimes' => 'Format gambar harus WEBP, PNG, atau JPG.',
+            'favicon_file.max' => 'Ukuran gambar maksimal 1 MB.',
         ]);
     }
 
@@ -56,13 +67,25 @@ class PlatformSettings extends Component
             'admin_email' => 'nullable|email|max:255',
             'google_analytics_id' => 'nullable|string|max:50',
             'maintenance_mode' => 'boolean',
+            'logo_file' => $this->fileRules,
+            'favicon_file' => $this->fileRules,
+        ], [
+            'logo_file.mimes' => 'Format logo harus WEBP, PNG, atau JPG.',
+            'logo_file.max' => 'Ukuran logo maksimal 1 MB.',
+            'favicon_file.mimes' => 'Format favicon harus WEBP, PNG, atau JPG.',
+            'favicon_file.max' => 'Ukuran favicon maksimal 1 MB.',
         ]);
 
         // Handle logo file upload
         if ($this->logo_file) {
-            $path = $this->logo_file->store('platform', 's3');
-            $this->main_logo_url = Storage::disk('s3')->url($path);
+            $this->main_logo_url = upload_url(upload_store('platform', $this->logo_file));
             $this->logo_file = null;
+        }
+
+        // Handle favicon file upload
+        if ($this->favicon_file) {
+            $this->favicon_url = upload_url(upload_store('platform', $this->favicon_file));
+            $this->favicon_file = null;
         }
 
         PlatformConfig::updateOrCreate(

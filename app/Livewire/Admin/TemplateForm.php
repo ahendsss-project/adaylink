@@ -28,6 +28,7 @@ class TemplateForm extends Component
     #[Validate('boolean')]
     public bool $is_active = true;
 
+    #[Validate('nullable|file|mimes:jpg,jpeg,png,webp|max:1024')]
     public $thumbnail_image = null;
 
     public bool $isEditing = false;

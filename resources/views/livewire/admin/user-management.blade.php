@@ -188,6 +188,15 @@
                                         </svg>
                                     </button>
 
+                                    {{-- Reset Password --}}
+                                    <button wire:click="openResetPasswordModal('{{ $user->id }}')"
+                                            title="Reset Password"
+                                            class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-orange-600 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                        </svg>
+                                    </button>
+
                                     {{-- Login As (Impersonate) --}}
                                     <button wire:click="impersonate('{{ $user->id }}')"
                                             wire:confirm="Login sebagai {{ $user->full_name }}?"
@@ -273,6 +282,150 @@
                     <button wire:click="saveSubscription"
                             class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
                         Simpan Perubahan
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Modal: Reset Password --}}
+    @if ($showResetPasswordModal)
+        @php $targetUser = $users->firstWhere('id', $resetPasswordUserId); @endphp
+        <div wire:transition:enter="transition ease-out duration-200"
+             wire:transition:enter-start="opacity-0"
+             wire:transition:enter-end="opacity-100"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+             wire:click.self="closeModal">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col"
+                 x-data="{
+                     showNew: false,
+                     showConfirm: false,
+                     password: '',
+                     get hasLength()  { return this.password.length >= 8; },
+                     get hasUpper()   { return /[A-Z]/.test(this.password); },
+                     get hasLower()   { return /[a-z]/.test(this.password); },
+                     get hasNumber()  { return /[0-9]/.test(this.password); },
+                     get hasSymbol()  { return /[^A-Za-z0-9]/.test(this.password); },
+                     get score()      { return [this.hasLength, this.hasUpper, this.hasLower, this.hasNumber, this.hasSymbol].filter(Boolean).length; },
+                     get strengthLabel() { return ['', 'Sangat Lemah', 'Lemah', 'Sedang', 'Kuat', 'Sangat Kuat'][this.score]; },
+                     get strengthColor() { return ['', 'bg-red-500', 'bg-orange-500', 'bg-amber-400', 'bg-blue-500', 'bg-green-500'][this.score]; },
+                     get strengthText()  { return ['', 'text-red-500', 'text-orange-500', 'text-amber-500', 'text-blue-500', 'text-green-600'][this.score]; },
+                 }">
+                {{-- Header --}}
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">Reset Password</h3>
+                            @if ($targetUser)
+                                <p class="text-sm text-gray-500">{{ $targetUser->full_name }} &mdash; {{ $targetUser->email }}</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Body --}}
+                <div class="px-6 py-4 space-y-4 overflow-y-auto flex-1">
+                    {{-- New Password --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
+                        <div class="relative">
+                            <input :type="showNew ? 'text' : 'password'"
+                                   wire:model="newPassword"
+                                   @input="password = $event.target.value"
+                                   placeholder="Buat password yang kuat"
+                                   class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none">
+                            <button type="button" @click="showNew = !showNew"
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <svg x-show="!showNew" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg x-show="showNew" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {{-- Strength Bar --}}
+                        <div x-show="password.length > 0" class="mt-2">
+                            <div class="flex gap-1 mb-1">
+                                <template x-for="i in 5">
+                                    <div class="h-1.5 flex-1 rounded-full transition-all duration-300"
+                                         :class="i <= score ? strengthColor : 'bg-gray-200'"></div>
+                                </template>
+                            </div>
+                            <p class="text-xs font-medium" :class="strengthText" x-text="strengthLabel"></p>
+                        </div>
+
+                        {{-- Requirements Checklist --}}
+                        <ul class="mt-2 space-y-0.5 text-xs" x-show="password.length > 0">
+                            <li :class="hasLength ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5">
+                                <span x-text="hasLength ? '✓' : '○'"></span> Minimal 8 karakter
+                            </li>
+                            <li :class="hasUpper ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5">
+                                <span x-text="hasUpper ? '✓' : '○'"></span> Huruf kapital (A-Z)
+                            </li>
+                            <li :class="hasLower ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5">
+                                <span x-text="hasLower ? '✓' : '○'"></span> Huruf kecil (a-z)
+                            </li>
+                            <li :class="hasNumber ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5">
+                                <span x-text="hasNumber ? '✓' : '○'"></span> Angka (0-9)
+                            </li>
+                            <li :class="hasSymbol ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5">
+                                <span x-text="hasSymbol ? '✓' : '○'"></span> Simbol (!@#$%^&*)
+                            </li>
+                        </ul>
+
+                        @error('newPassword')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Confirm Password --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password</label>
+                        <div class="relative">
+                            <input :type="showConfirm ? 'text' : 'password'"
+                                   wire:model="confirmPassword"
+                                   placeholder="Ulangi password baru"
+                                   class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none">
+                            <button type="button" @click="showConfirm = !showConfirm"
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <svg x-show="!showConfirm" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg x-show="showConfirm" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                </svg>
+                            </button>
+                        </div>
+                        @error('confirmPassword')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <p class="text-xs text-gray-400">
+                        <svg class="w-3.5 h-3.5 inline mr-1 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        Password lama akan langsung tidak bisa digunakan. Informasikan password baru ke driver secara langsung.
+                    </p>
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+                    <button wire:click="closeModal"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                        Batal
+                    </button>
+                    <button wire:click="resetPassword" wire:loading.attr="disabled"
+                            class="px-4 py-2 text-sm font-medium text-black bg-orange-600 rounded-lg hover:bg-orange-700 disabled:opacity-50 transition">
+                        <span wire:loading.remove wire:target="resetPassword">Reset Password</span>
+                        <span wire:loading wire:target="resetPassword">Menyimpan...</span>
                     </button>
                 </div>
             </div>

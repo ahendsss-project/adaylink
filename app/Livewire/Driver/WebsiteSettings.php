@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class WebsiteSettings extends Component
 {
+    use WithFileUploads;
     // Website fields (stored on `websites` table)
     #[Validate('nullable|string|max:255')]
     public string $logo_url = '';
@@ -64,6 +66,10 @@ class WebsiteSettings extends Component
 
     // Temporary input for adding gallery image
     public string $new_gallery_image = '';
+
+    public $logo_file = null;
+    public $hero_image_file = null;
+    public $new_gallery_image_file = null;
 
     // Custom domain
     #[Validate('nullable|string|max:255')]
@@ -171,8 +177,47 @@ class WebsiteSettings extends Component
         ];
     }
 
+    private array $imageFileRules = [
+        'file', 'mimes:jpg,jpeg,png,webp', 'max:1024', 'dimensions:min_width=50,min_height=50',
+    ];
+
+    private array $imageFileMessages = [
+        'mimes' => 'Format gambar harus WEBP, PNG, atau JPG.',
+        'max' => 'Ukuran gambar maksimal 1 MB.',
+        'dimensions' => 'Dimensi gambar minimal 50×50 piksel.',
+    ];
+
+    public function updatedLogoFile(): void
+    {
+        $this->validateOnly('logo_file', ['logo_file' => ['nullable', ...$this->imageFileRules]],
+            array_combine(array_map(fn ($k) => "logo_file.{$k}", array_keys($this->imageFileMessages)), $this->imageFileMessages));
+    }
+
+    public function updatedHeroImageFile(): void
+    {
+        $this->validateOnly('hero_image_file', ['hero_image_file' => ['nullable', ...$this->imageFileRules]],
+            array_combine(array_map(fn ($k) => "hero_image_file.{$k}", array_keys($this->imageFileMessages)), $this->imageFileMessages));
+    }
+
+    public function updatedNewGalleryImageFile(): void
+    {
+        $this->validateOnly('new_gallery_image_file', ['new_gallery_image_file' => ['nullable', ...$this->imageFileRules]],
+            array_combine(array_map(fn ($k) => "new_gallery_image_file.{$k}", array_keys($this->imageFileMessages)), $this->imageFileMessages));
+    }
+
     public function addGalleryImage(): void
     {
+        // Handle file upload for gallery
+        if ($this->new_gallery_image_file) {
+            $this->validate(['new_gallery_image_file' => $this->imageFileRules],
+                array_combine(array_map(fn ($k) => "new_gallery_image_file.{$k}", array_keys($this->imageFileMessages)), $this->imageFileMessages));
+            $url = upload_url(upload_store('gallery', $this->new_gallery_image_file));
+            $this->gallery_images[] = $url;
+            $this->new_gallery_image_file = null;
+
+            return;
+        }
+
         $url = trim($this->new_gallery_image);
 
         if (empty($url)) {
@@ -201,6 +246,22 @@ class WebsiteSettings extends Component
     public function save(): void
     {
         $this->validate();
+
+        // Handle logo file upload
+        if ($this->logo_file) {
+            $this->validate(['logo_file' => $this->imageFileRules],
+                array_combine(array_map(fn ($k) => "logo_file.{$k}", array_keys($this->imageFileMessages)), $this->imageFileMessages));
+            $this->logo_url = upload_url(upload_store('logos', $this->logo_file));
+            $this->logo_file = null;
+        }
+
+        // Handle hero image file upload
+        if ($this->hero_image_file) {
+            $this->validate(['hero_image_file' => $this->imageFileRules],
+                array_combine(array_map(fn ($k) => "hero_image_file.{$k}", array_keys($this->imageFileMessages)), $this->imageFileMessages));
+            $this->hero_image_url = upload_url(upload_store('hero-images', $this->hero_image_file));
+            $this->hero_image_file = null;
+        }
 
         // Verify the selected template is allowed for this user's tier
         $selectedTemplate = Template::find($this->template_id);

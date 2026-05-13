@@ -16,7 +16,20 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('register.post') }}" x-data="{ showPassword: false, password: '', checkPassword() {} }">
+    <form method="POST" action="{{ route('register.post') }}" x-data="{
+        showPassword: false,
+        showConfirm: false,
+        password: '',
+        get hasLength()  { return this.password.length >= 8; },
+        get hasUpper()   { return /[A-Z]/.test(this.password); },
+        get hasLower()   { return /[a-z]/.test(this.password); },
+        get hasNumber()  { return /[0-9]/.test(this.password); },
+        get hasSymbol()  { return /[^A-Za-z0-9]/.test(this.password); },
+        get score()      { return [this.hasLength, this.hasUpper, this.hasLower, this.hasNumber, this.hasSymbol].filter(Boolean).length; },
+        get strengthLabel() { return ['', 'Sangat Lemah', 'Lemah', 'Sedang', 'Kuat', 'Sangat Kuat'][this.score]; },
+        get strengthColor() { return ['', 'bg-red-500', 'bg-orange-500', 'bg-amber-400', 'bg-blue-500', 'bg-green-500'][this.score]; },
+        get strengthText()  { return ['', 'text-red-500', 'text-orange-500', 'text-amber-500', 'text-blue-500', 'text-green-600'][this.score]; },
+    }">
         @csrf
 
         {{-- Full Name --}}
@@ -70,16 +83,12 @@
                     id="password"
                     name="password"
                     x-model="password"
-                    @input="checkPassword()"
                     required
-                    placeholder="Minimal 8 karakter"
+                    placeholder="Buat password yang kuat"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition pr-10"
                 >
-                <button
-                    type="button"
-                    @click="showPassword = !showPassword"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
+                <button type="button" @click="showPassword = !showPassword"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     <svg x-show="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -89,35 +98,63 @@
                     </svg>
                 </button>
             </div>
-            {{-- Password strength indicators --}}
-            <div class="mt-2 space-y-1" x-show="password && password.length > 0">
-                <p class="text-xs" :class="password.length >= 8 ? 'text-green-600' : 'text-gray-400'">
-                    <span x-text="password.length >= 8 ? '✅' : '○'"></span> Minimal 8 karakter
-                </p>
-                <p class="text-xs" :class="/[A-Z]/.test(password) ? 'text-green-600' : 'text-gray-400'">
-                    <span x-text="/[A-Z]/.test(password) ? '✅' : '○'"></span> Huruf besar (A-Z)
-                </p>
-                <p class="text-xs" :class="/[0-9]/.test(password) ? 'text-green-600' : 'text-gray-400'">
-                    <span x-text="/[0-9]/.test(password) ? '✅' : '○'"></span> Angka (0-9)
-                </p>
-                <p class="text-xs" :class="/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : 'text-gray-400'">
-                    <span x-text="/[^A-Za-z0-9]/.test(password) ? '✅' : '○'"></span> Karakter khusus (!@#$%...)
-                </p>
+
+            {{-- Strength Bar --}}
+            <div x-show="password.length > 0" class="mt-2">
+                <div class="flex gap-1 mb-1">
+                    <template x-for="i in 5">
+                        <div class="h-1.5 flex-1 rounded-full transition-all duration-300"
+                             :class="i <= score ? strengthColor : 'bg-gray-200'"></div>
+                    </template>
+                </div>
+                <p class="text-xs font-medium" :class="strengthText" x-text="strengthLabel"></p>
             </div>
+
+            {{-- Requirements Checklist --}}
+            <ul class="mt-2 space-y-0.5" x-show="password.length > 0">
+                <li :class="hasLength ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5 text-xs">
+                    <span x-text="hasLength ? '✓' : '○'"></span> Minimal 8 karakter
+                </li>
+                <li :class="hasUpper ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5 text-xs">
+                    <span x-text="hasUpper ? '✓' : '○'"></span> Huruf kapital (A-Z)
+                </li>
+                <li :class="hasLower ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5 text-xs">
+                    <span x-text="hasLower ? '✓' : '○'"></span> Huruf kecil (a-z)
+                </li>
+                <li :class="hasNumber ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5 text-xs">
+                    <span x-text="hasNumber ? '✓' : '○'"></span> Angka (0-9)
+                </li>
+                <li :class="hasSymbol ? 'text-green-600' : 'text-gray-400'" class="flex items-center gap-1.5 text-xs">
+                    <span x-text="hasSymbol ? '✓' : '○'"></span> Simbol (!@#$%^&*)
+                </li>
+            </ul>
+
             @error('password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
         </div>
 
         {{-- Confirm Password --}}
         <div class="mb-6">
             <label for="password_confirmation" class="block text-sm font-medium text-gray-600 mb-1">Konfirmasi Password</label>
-            <input
-                type="password"
-                id="password_confirmation"
-                name="password_confirmation"
-                required
-                placeholder="Ulangi password"
-                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-            >
+            <div class="relative">
+                <input
+                    :type="showConfirm ? 'text' : 'password'"
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    required
+                    placeholder="Ulangi password"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition pr-10"
+                >
+                <button type="button" @click="showConfirm = !showConfirm"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <svg x-show="!showConfirm" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg x-show="showConfirm" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
         {{-- Submit --}}

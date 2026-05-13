@@ -5,12 +5,13 @@ namespace App\Livewire\Driver;
 use App\Models\StockImage;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class VehicleForm extends Component
 {
+    use WithFileUploads;
     public ?Vehicle $vehicle = null;
 
     #[Validate('required|string|max:255')]
@@ -24,6 +25,8 @@ class VehicleForm extends Component
 
     #[Validate('nullable|string|max:255')]
     public string $image_url = '';
+
+    public $image_file = null;
 
     public bool $isEditing = false;
 
@@ -63,9 +66,21 @@ class VehicleForm extends Component
         }
     }
 
+    public function updatedImageFile(): void
+    {
+        $this->validateOnly('image_file', [
+            'image_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:1024', 'dimensions:min_width=50,min_height=50'],
+        ], [
+            'image_file.mimes' => 'Format gambar harus WEBP, PNG, atau JPG.',
+            'image_file.max' => 'Ukuran gambar maksimal 1 MB.',
+            'image_file.dimensions' => 'Dimensi gambar minimal 50×50 piksel.',
+        ]);
+    }
+
     public function selectStockImage(string $url): void
     {
         $this->image_url = upload_url($url);
+        $this->image_file = null;
     }
 
     public function save(): void
@@ -78,6 +93,18 @@ class VehicleForm extends Component
         }
 
         $this->validate();
+
+        if ($this->image_file) {
+            $this->validate([
+                'image_file' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:1024', 'dimensions:min_width=50,min_height=50'],
+            ], [
+                'image_file.mimes' => 'Format gambar harus WEBP, PNG, atau JPG.',
+                'image_file.max' => 'Ukuran gambar maksimal 1 MB.',
+                'image_file.dimensions' => 'Dimensi gambar minimal 50×50 piksel.',
+            ]);
+            $this->image_url = upload_url(upload_store('vehicles', $this->image_file));
+            $this->image_file = null;
+        }
 
         $website = Auth::guard('web')->user()->websites->first();
 

@@ -8,6 +8,8 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -29,6 +31,12 @@ class UserManagement extends Component
     public bool $showNoteModal = false;
     public ?string $noteUserId = null;
     public string $adminNote = '';
+
+    // Reset password modal
+    public bool $showResetPasswordModal = false;
+    public ?string $resetPasswordUserId = null;
+    public string $newPassword = '';
+    public string $confirmPassword = '';
 
     protected function rules(): array
     {
@@ -185,13 +193,52 @@ class UserManagement extends Component
     }
 
     /**
+     * Open reset password modal.
+     */
+    public function openResetPasswordModal(string $userId): void
+    {
+        $this->resetPasswordUserId = $userId;
+        $this->newPassword = '';
+        $this->confirmPassword = '';
+        $this->showResetPasswordModal = true;
+    }
+
+    /**
+     * Reset user password.
+     */
+    public function resetPassword(): void
+    {
+        $this->validate([
+            'newPassword'     => ['required', 'string', Password::min(8)->mixedCase()->numbers()->symbols()],
+            'confirmPassword' => ['required', 'string', 'same:newPassword'],
+        ], [
+            'newPassword.required'     => 'Password baru wajib diisi.',
+            'confirmPassword.required' => 'Konfirmasi password wajib diisi.',
+            'confirmPassword.same'     => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        $user = User::findOrFail($this->resetPasswordUserId);
+        $user->update(['password' => Hash::make($this->newPassword)]);
+
+        $this->logAudit('Reset Password', $user->id, [
+            'reset_by_admin' => Auth::guard('admin')->user()->name ?? 'Admin',
+        ]);
+
+        $this->showResetPasswordModal = false;
+        $this->reset(['resetPasswordUserId', 'newPassword', 'confirmPassword']);
+
+        session()->flash('success', "Password {$user->full_name} berhasil direset.");
+    }
+
+    /**
      * Close modals and reset state.
      */
     public function closeModal(): void
     {
         $this->showEditModal = false;
         $this->showNoteModal = false;
-        $this->reset(['editUserId', 'editPlanId', 'editExpiresAt', 'noteUserId', 'adminNote']);
+        $this->showResetPasswordModal = false;
+        $this->reset(['editUserId', 'editPlanId', 'editExpiresAt', 'noteUserId', 'adminNote', 'resetPasswordUserId', 'newPassword', 'confirmPassword']);
     }
 
     /**
