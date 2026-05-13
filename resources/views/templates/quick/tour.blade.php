@@ -1,6 +1,8 @@
 {{-- Template: Quick — Booking-Focused Tour Detail --}}
 @php
-    $homeUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/';
+    $homeUrl = isset($demoTemplate) ? '/app/demo/' . $demoTemplate : (isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/');
+    $pageUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/page' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page' : '/page');
+    $tourUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/tour' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour' : '/tour');
     $primaryColor = $settings->primary_color ?? '#0891B2';
     $secondaryColor = $settings->secondary_color ?? '#164E63';
     $fontHeading = $settings->font_heading ?? 'DM Sans';
@@ -232,7 +234,7 @@
         <ul class="qk-nav-links">
             <li><a href="{{ $homeUrl }}">{{ __('messages.home') }}</a></li>
             @foreach($pages as $p)
-                <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+                <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
             @endforeach
             @if($website->contact_whatsapp)
                 <li><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" class="qk-btn"><i class="fab fa-whatsapp"></i> Book Now</a></li>
@@ -250,7 +252,7 @@
         <div class="qk-drawer-links">
             <a href="{{ $homeUrl }}" @click="drawerOpen = false">{{ __('messages.home') }}</a>
             @foreach($pages as $p)
-                <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}" @click="drawerOpen = false">{{ $p->title }}</a>
+                <a href="{{ $pageUrlBase . '/' . $p->slug }}" @click="drawerOpen = false">{{ $p->title }}</a>
             @endforeach
             @if($website->contact_whatsapp)
                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" @click="drawerOpen = false">Book Now</a>
@@ -437,7 +439,7 @@
         <div class="qk-block-label" style="margin-bottom:20px;">Tour Lainnya</div>
         <div class="qk-related-grid">
             @foreach($relatedTours as $related)
-                <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour/' . $related->slug : '/tour/' . $related->slug }}" class="qk-rel-card">
+                <a href="{{ $tourUrlBase . '/' . $related->slug }}" class="qk-rel-card">
                     @if($related->thumbnail_url)
                         <img src="{{ $related->thumbnail_url }}" alt="{{ $related->title }}" class="qk-rel-card-img"/>
                     @elseif($related->images->count() > 0)
@@ -474,7 +476,7 @@
                 </a>
                 <p class="qk-footer-desc">{{ $settings->description ?? 'Powered by adaylink.' }}</p>
             </div>
-            <div class="qk-footer-col"><h5>Halaman</h5><ul>@foreach($pages as $p)<li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>@endforeach</ul></div>
+            <div class="qk-footer-col"><h5>Halaman</h5><ul>@foreach($pages as $p)<li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>@endforeach</ul></div>
             <div class="qk-footer-col"><h5>Kontak</h5><ul>
                 @if($settings->phone ?? null)<li><a href="tel:{{ $settings->phone }}">{{ $settings->phone }}</a></li>@endif
                 @if($settings->email ?? null)<li><a href="mailto:{{ $settings->email }}">{{ $settings->email }}</a></li>@endif

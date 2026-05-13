@@ -1,6 +1,8 @@
 {{-- Template: Card + Conversion — Sales-focused with full-bleed hero + floating stats --}}
 @php
-    $homeUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/';
+    $homeUrl = isset($demoTemplate) ? '/app/demo/' . $demoTemplate : (isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/');
+    $pageUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/page' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page' : '/page');
+    $tourUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/tour' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour' : '/tour');
     $primaryColor = $settings->primary_color ?? '#4F46E5';
     $secondaryColor = $settings->secondary_color ?? '#1E1B4B';
     $fontHeading = $settings->font_heading ?? 'Sora';
@@ -890,7 +892,7 @@
         <ul class="crd-nav-links">
             <li><a href="{{ $homeUrl }}" class="active">{{ __('messages.home') }}</a></li>
             @foreach($pages as $p)
-                <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+                <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
             @endforeach
             @if($website->contact_whatsapp)
                 <li><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" class="crd-btn" style="padding:8px 18px;font-size:0.82rem;"><i class="fab fa-whatsapp"></i> Hubungi</a></li>
@@ -910,7 +912,7 @@
         <div class="crd-drawer-links">
             <a href="{{ $homeUrl }}" @click="drawerOpen = false">{{ __('messages.home') }}</a>
             @foreach($pages as $p)
-                <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}"
+                <a href="{{ $pageUrlBase . '/' . $p->slug }}"
                    @click="drawerOpen = false">{{ $p->title }}</a>
             @endforeach
             @if($website->contact_whatsapp)
@@ -980,7 +982,7 @@
     </div>
     <div class="crd-tours-scroll">
         @foreach($tourPackages as $tour)
-            <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour/' . $tour->slug : '/tour/' . $tour->slug }}" class="crd-tour-card">
+            <a href="{{ $tourUrlBase . '/' . $tour->slug }}" class="crd-tour-card">
                 <div class="crd-tour-card-img-wrap">
                     @if($tour->thumbnail_url)
                         <img src="{{ $tour->thumbnail_url }}" alt="{{ $tour->title }}" class="crd-tour-card-img"/>
@@ -1201,7 +1203,7 @@
                 <h5>Halaman</h5>
                 <ul>
                     @foreach($pages as $p)
-                        <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+                        <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
                     @endforeach
                 </ul>
             </div>

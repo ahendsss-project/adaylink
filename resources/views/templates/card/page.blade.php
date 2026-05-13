@@ -1,6 +1,8 @@
 {{-- Template: Card + Conversion — Page View with Diagonal Header --}}
 @php
-    $homeUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/';
+    $homeUrl = isset($demoTemplate) ? '/app/demo/' . $demoTemplate : (isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/');
+    $pageUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/page' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page' : '/page');
+    $tourUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/tour' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour' : '/tour');
     $primaryColor = $settings->primary_color ?? '#4F46E5';
     $secondaryColor = $settings->secondary_color ?? '#1E1B4B';
     $fontHeading = $settings->font_heading ?? 'Sora';
@@ -223,7 +225,7 @@
         <ul class="crd-nav-links">
             <li><a href="{{ $homeUrl }}">{{ __('messages.home') }}</a></li>
             @foreach($pages as $p)
-                <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}" class="{{ isset($page) && $page->slug === $p->slug ? 'active' : '' }}">{{ $p->title }}</a></li>
+                <li><a href="{{ $pageUrlBase . '/' . $p->slug }}" class="{{ isset($page) && $page->slug === $p->slug ? 'active' : '' }}">{{ $p->title }}</a></li>
             @endforeach
             @if($website->contact_whatsapp)
                 <li><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" class="crd-btn" style="padding:8px 18px;font-size:0.82rem;"><i class="fab fa-whatsapp"></i> Hubungi</a></li>
@@ -239,7 +241,7 @@
         <button class="crd-drawer-close" @click="drawerOpen = false"><i class="fas fa-times"></i></button>
         <div class="crd-drawer-links">
             <a href="{{ $homeUrl }}" @click="drawerOpen = false">{{ __('messages.home') }}</a>
-            @foreach($pages as $p) <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}" @click="drawerOpen = false">{{ $p->title }}</a> @endforeach
+            @foreach($pages as $p) <a href="{{ $pageUrlBase . '/' . $p->slug }}" @click="drawerOpen = false">{{ $p->title }}</a> @endforeach
             @if($website->contact_whatsapp) <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" @click="drawerOpen = false">{{ __('messages.contact') }}</a> @endif
         </div>
     </div>
@@ -269,7 +271,7 @@
                 <a href="{{ $homeUrl }}" class="crd-logo"><div class="crd-logo-icon">@if($website->logo_url) <img src="{{ $website->logo_url }}" alt="Logo"/> @else <i class="fas fa-suitcase-rolling"></i> @endif</div><span class="crd-logo-text">{{ $settings->site_title ?? $website->site_name ?? 'Website' }}</span></a>
                 <p class="crd-footer-desc">{{ $settings->description ?? 'Powered by adaylink.' }}</p>
             </div>
-            <div class="crd-footer-col"><h5>Halaman</h5><ul>@foreach($pages as $p)<li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>@endforeach</ul></div>
+            <div class="crd-footer-col"><h5>Halaman</h5><ul>@foreach($pages as $p)<li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>@endforeach</ul></div>
             <div class="crd-footer-col"><h5>Kontak</h5><ul>
                 @if($settings->phone ?? null)<li><a href="tel:{{ $settings->phone }}">{{ $settings->phone }}</a></li>@endif
                 @if($settings->email ?? null)<li><a href="mailto:{{ $settings->email }}">{{ $settings->email }}</a></li>@endif

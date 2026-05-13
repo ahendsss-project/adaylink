@@ -1,6 +1,8 @@
 {{-- Template: Clean — Swiss/Editorial Page View --}}
 @php
-    $homeUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/';
+    $homeUrl = isset($demoTemplate) ? '/app/demo/' . $demoTemplate : (isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/');
+    $pageUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/page' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page' : '/page');
+    $tourUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/tour' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour' : '/tour');
     $primaryColor = $settings->primary_color ?? '#2563EB';
     $secondaryColor = $settings->secondary_color ?? '#0F172A';
     $fontHeading = $settings->font_heading ?? 'Space Grotesk';
@@ -429,7 +431,7 @@
         <ul class="topbar-nav">
             <li><a href="{{ $homeUrl }}">{{ __('messages.home') }}</a></li>
             @foreach($pages as $p)
-                <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}" {{ $p->slug === $page->slug ? 'class="active"' : '' }}>{{ $p->title }}</a></li>
+                <li><a href="{{ $pageUrlBase . '/' . $p->slug }}" {{ $p->slug === $page->slug ? 'class="active"' : '' }}>{{ $p->title }}</a></li>
             @endforeach
             @if($website->contact_whatsapp)
                 <li><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" class="nav-pill"><i class="fab fa-whatsapp"></i> Hubungi</a></li>
@@ -456,7 +458,7 @@
         <div class="mobile-drawer-links">
             <a href="{{ $homeUrl }}" @click="drawerOpen = false">{{ __('messages.home') }}</a>
             @foreach($pages as $p)
-                <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}" @click="drawerOpen = false">{{ $p->title }}</a>
+                <a href="{{ $pageUrlBase . '/' . $p->slug }}" @click="drawerOpen = false">{{ $p->title }}</a>
             @endforeach
             @if($website->contact_whatsapp)
                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" @click="drawerOpen = false"><i class="fab fa-whatsapp"></i> WhatsApp</a>
@@ -503,7 +505,7 @@
                 <h5>Halaman</h5>
                 <ul>
                     @foreach($pages as $p)
-                        <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+                        <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
                     @endforeach
                 </ul>
             </div>

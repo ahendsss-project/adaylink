@@ -1,6 +1,8 @@
 {{-- Template: Modern Travel — Tour Detail View --}}
 @php
-    $homeUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/';
+    $homeUrl = isset($demoTemplate) ? '/app/demo/' . $demoTemplate : (isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/');
+    $pageUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/page' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page' : '/page');
+    $tourUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/tour' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour' : '/tour');
     $primaryColor = $settings->primary_color ?? '#FF6B35';
     $secondaryColor = $settings->secondary_color ?? '#0F172A';
     $fontHeading = $settings->font_heading ?? 'Poppins';
@@ -661,7 +663,7 @@
         <ul class="mod-nav-links">
             <li><a href="{{ $homeUrl }}">{{ __('messages.home') }}</a></li>
             @foreach($pages as $p)
-                <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+                <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
             @endforeach
             @if($website->contact_whatsapp)
                 <li><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" class="mod-nav-cta"><i class="fab fa-whatsapp" style="margin-right:4px;"></i> Hubungi</a></li>
@@ -681,7 +683,7 @@
         <div class="mod-drawer-links">
             <a href="{{ $homeUrl }}" @click="drawerOpen = false">{{ __('messages.home') }}</a>
             @foreach($pages as $p)
-                <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}"
+                <a href="{{ $pageUrlBase . '/' . $p->slug }}"
                    @click="drawerOpen = false">{{ $p->title }}</a>
             @endforeach
             @if($website->contact_whatsapp)
@@ -862,7 +864,7 @@
         <div class="mod-block-label" style="margin-bottom:24px;">Tour Lainnya</div>
         <div class="mod-related-grid">
             @foreach($relatedTours as $related)
-                <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour/' . $related->slug : '/tour/' . $related->slug }}" class="mod-rel-card">
+                <a href="{{ $tourUrlBase . '/' . $related->slug }}" class="mod-rel-card">
                     @if($related->thumbnail_url)
                         <img src="{{ $related->thumbnail_url }}" alt="{{ $related->title }}" class="mod-rel-card-img"/>
                     @elseif($related->images->count() > 0)
@@ -909,7 +911,7 @@
                 <h5>Halaman</h5>
                 <ul>
                     @foreach($pages as $p)
-                        <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+                        <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
                     @endforeach
                 </ul>
             </div>

@@ -1,6 +1,8 @@
 {{-- Shared Page Detail Template --}}
 @php
-    $homeUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/';
+    $homeUrl = isset($demoTemplate) ? '/app/demo/' . $demoTemplate : (isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/');
+    $pageUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/page' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page' : '/page');
+    $tourUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/tour' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour' : '/tour');
     $primaryColor = $settings->primary_color ?? '#40ac98';
     $secondaryColor = $settings->secondary_color ?? '#333333';
     $fontHeading = $settings->font_heading ?? 'Inter';
@@ -55,7 +57,7 @@
                     Beranda
                 </a>
                 @foreach ($pages as $p)
-                    @php $pageUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug; @endphp
+                    @php $pageUrl = $pageUrlBase . '/' . $p->slug; @endphp
                     <a href="{{ $pageUrl }}" class="hover:text-gray-900 transition {{ $p->slug === $page->slug ? 'text-gray-900 font-medium' : '' }}">{{ $p->title }}</a>
                 @endforeach
             </div>
@@ -83,7 +85,7 @@
                 Beranda
             </a>
             @foreach ($pages as $p)
-                @php $pageUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug; @endphp
+                @php $pageUrl = $pageUrlBase . '/' . $p->slug; @endphp
                 <a href="{{ $pageUrl }}" class="block hover:text-gray-900 {{ $p->slug === $page->slug ? 'text-gray-900 font-medium' : '' }}">{{ $p->title }}</a>
             @endforeach
         </div>

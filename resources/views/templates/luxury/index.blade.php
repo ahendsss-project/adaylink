@@ -1,6 +1,8 @@
 {{-- Template: Luxury (Premium Tier) — Elegant design with Playfair Display + DM Sans --}}
 @php
-    $homeUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/';
+    $homeUrl = isset($demoTemplate) ? '/app/demo/' . $demoTemplate : (isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/');
+    $pageUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/page' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page' : '/page');
+    $tourUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/tour' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour' : '/tour');
     $primaryColor = $settings->primary_color ?? '#C8883A';
     $secondaryColor = $settings->secondary_color ?? '#333333';
     $fontHeading = $settings->font_heading ?? 'Playfair Display';
@@ -864,7 +866,7 @@
   <ul>
     <li><a href="{{ $homeUrl }}">{{ __('messages.home') }}</a></li>
     @foreach($pages as $p)
-      <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+      <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
     @endforeach
     @if($website->contact_whatsapp)
       <li><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" class="nav-cta">{{ __('messages.book_now') }}</a></li>
@@ -888,7 +890,7 @@
     @click.away="mobileOpen = false">
   <li><a href="{{ $homeUrl }}" @click="mobileOpen = false">{{ __('messages.home') }}</a></li>
   @foreach($pages as $p)
-    <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}" @click="mobileOpen = false">{{ $p->title }}</a></li>
+    <li><a href="{{ $pageUrlBase . '/' . $p->slug }}" @click="mobileOpen = false">{{ $p->title }}</a></li>
   @endforeach
   @if($website->contact_whatsapp)
     <li><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" @click="mobileOpen = false"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
@@ -945,7 +947,7 @@
   </div>
   <div class="tour-grid">
     @foreach($tourPackages as $tour)
-      <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour/' . $tour->slug : '/tour/' . $tour->slug }}" class="tour-card">
+      <a href="{{ $tourUrlBase . '/' . $tour->slug }}" class="tour-card">
         <div class="tour-img">
           @if($tour->thumbnail_url)
             <img src="{{ $tour->thumbnail_url }}" alt="{{ $tour->title }}"/>
@@ -1181,7 +1183,7 @@
       <h4>Halaman</h4>
       <ul>
         @foreach($pages as $p)
-          <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+          <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
         @endforeach
       </ul>
     </div>

@@ -135,7 +135,8 @@ class TemplateDemoController extends Controller
             'reviewSchema' => $reviewSchema,
             'galleryImages' => $galleryImages,
             'pages' => $pages,
-            'subdomain' => 'demo',
+            'subdomain' => null,
+            'demoTemplate' => $template,
         ];
     }
 

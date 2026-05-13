@@ -1,6 +1,8 @@
 {{-- Template: Minimalis — Pure minimalist Page View --}}
 @php
-    $homeUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/';
+    $homeUrl = isset($demoTemplate) ? '/app/demo/' . $demoTemplate : (isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/');
+    $pageUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/page' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page' : '/page');
+    $tourUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/tour' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour' : '/tour');
     $primaryColor = $settings->primary_color ?? '#111111';
     $secondaryColor = $settings->secondary_color ?? '#555555';
     $fontHeading = $settings->font_heading ?? 'Manrope';
@@ -553,7 +555,7 @@
         <ul class="min-nav-links">
             <li><a href="{{ $homeUrl }}">{{ __('messages.home') }}</a></li>
             @foreach($pages as $p)
-                <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}"
+                <li><a href="{{ $pageUrlBase . '/' . $p->slug }}"
                        class="{{ isset($page) && $page->slug === $p->slug ? 'active' : '' }}">{{ $p->title }}</a></li>
             @endforeach
             @if($website->contact_whatsapp)
@@ -574,7 +576,7 @@
         <div class="min-drawer-links">
             <a href="{{ $homeUrl }}" @click="drawerOpen = false">{{ __('messages.home') }}</a>
             @foreach($pages as $p)
-                <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}"
+                <a href="{{ $pageUrlBase . '/' . $p->slug }}"
                    @click="drawerOpen = false">{{ $p->title }}</a>
             @endforeach
             @if($website->contact_whatsapp)
@@ -624,7 +626,7 @@
                 <div class="min-footer-col-title">Halaman</div>
                 <ul>
                     @foreach($pages as $p)
-                        <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+                        <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
                     @endforeach
                 </ul>
             </div>

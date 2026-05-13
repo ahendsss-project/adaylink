@@ -69,11 +69,6 @@ Route::get('/', function (Request $request) {
 
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
-// Template Demo/Preview routes (public, no auth required)
-Route::get('/demo/{template}', [TemplateDemoController::class, 'show'])->name('demo.template');
-Route::get('/demo/{template}/tour/{slug}', [TemplateDemoController::class, 'showTour'])->name('demo.tour');
-Route::get('/demo/{template}/page/{slug}', [TemplateDemoController::class, 'showPage'])->name('demo.page');
-
 /*
 |--------------------------------------------------------------------------
 | 3. Admin Panel (Prefix: /admin)
@@ -117,6 +112,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 | Gunakan prefix 'app' agar tidak bentrok dengan root WordPress
 */
 Route::prefix('app')->group(function () {
+
+    // Template Demo/Preview routes (public, no auth required)
+    Route::get('/demo/{template}', [TemplateDemoController::class, 'show'])->name('demo.template');
+    Route::get('/demo/{template}/tour/{slug}', [TemplateDemoController::class, 'showTour'])->name('demo.tour');
+    Route::get('/demo/{template}/page/{slug}', [TemplateDemoController::class, 'showPage'])->name('demo.page');
 
     // Auth Routes
     Route::middleware('guest:web')->group(function () {

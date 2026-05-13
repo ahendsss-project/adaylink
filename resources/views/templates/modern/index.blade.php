@@ -1,6 +1,8 @@
 {{-- Template: Modern Travel — Vibrant travel style with Poppins + Plus Jakarta Sans --}}
 @php
-    $homeUrl = isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/';
+    $homeUrl = isset($demoTemplate) ? '/app/demo/' . $demoTemplate : (isset($subdomain) && $subdomain ? '/s/' . $subdomain : '/');
+    $pageUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/page' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page' : '/page');
+    $tourUrlBase = isset($demoTemplate) ? '/app/demo/' . $demoTemplate . '/tour' : (isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour' : '/tour');
     $primaryColor = $settings->primary_color ?? '#FF6B35';
     $secondaryColor = $settings->secondary_color ?? '#0F172A';
     $fontHeading = $settings->font_heading ?? 'Poppins';
@@ -920,7 +922,7 @@
         <ul class="mod-nav-links">
             <li><a href="{{ $homeUrl }}" class="active">{{ __('messages.home') }}</a></li>
             @foreach($pages as $p)
-                <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+                <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
             @endforeach
             @if($website->contact_whatsapp)
                 <li><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $website->contact_whatsapp) }}" target="_blank" class="mod-nav-cta"><i class="fab fa-whatsapp" style="margin-right:4px;"></i> Hubungi</a></li>
@@ -940,7 +942,7 @@
         <div class="mod-drawer-links">
             <a href="{{ $homeUrl }}" @click="drawerOpen = false">{{ __('messages.home') }}</a>
             @foreach($pages as $p)
-                <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}"
+                <a href="{{ $pageUrlBase . '/' . $p->slug }}"
                    @click="drawerOpen = false">{{ $p->title }}</a>
             @endforeach
             @if($website->contact_whatsapp)
@@ -997,7 +999,7 @@
     </div>
     <div class="mod-tours-grid">
         @foreach($tourPackages as $tour)
-            <a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/tour/' . $tour->slug : '/tour/' . $tour->slug }}" class="mod-tour-card">
+            <a href="{{ $tourUrlBase . '/' . $tour->slug }}" class="mod-tour-card">
                 <div class="mod-tour-card-img-wrap">
                     @if($tour->thumbnail_url)
                         <img src="{{ $tour->thumbnail_url }}" alt="{{ $tour->title }}" class="mod-tour-card-img"/>
@@ -1210,7 +1212,7 @@
                 <h5>Halaman</h5>
                 <ul>
                     @foreach($pages as $p)
-                        <li><a href="{{ isset($subdomain) && $subdomain ? '/s/' . $subdomain . '/page/' . $p->slug : '/page/' . $p->slug }}">{{ $p->title }}</a></li>
+                        <li><a href="{{ $pageUrlBase . '/' . $p->slug }}">{{ $p->title }}</a></li>
                     @endforeach
                 </ul>
             </div>
