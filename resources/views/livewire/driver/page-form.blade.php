@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ showTranslation: {{ $multilanguageEnabled ? 'true' : 'false' }} }">
     {{-- Back Button --}}
     <a href="{{ route('driver.pages.index') }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4">
         <i class="fa-solid fa-arrow-left text-xs"></i>
@@ -61,6 +61,48 @@
                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#40ac98] focus:border-[#40ac98] outline-none resize-y"></textarea>
                 @error('content') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
+
+            {{-- Translation Section --}}
+            @if ($multilanguageEnabled)
+                @php
+                    $localeLabel = $secondaryLocale === 'en' ? '🇬🇧 English' : '🇮🇩 Indonesia';
+                    $localeHint = $secondaryLocale === 'en' ? 'English' : 'Indonesia';
+                @endphp
+                <div class="border border-blue-200 rounded-xl overflow-hidden">
+                    <button type="button" @click="showTranslation = !showTranslation"
+                            class="w-full flex items-center justify-between px-5 py-3 bg-blue-50 hover:bg-blue-100 transition">
+                        <span class="flex items-center gap-2 text-sm font-medium text-blue-800">
+                            <i class="fas fa-language"></i>
+                            Terjemahan {{ $localeLabel }}
+                        </span>
+                        <i class="fas fa-chevron-down text-blue-400 transition-transform" :class="showTranslation ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="showTranslation" x-transition class="p-5 space-y-4 bg-white">
+                        <p class="text-xs text-gray-400 mb-3">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Isi kolom di bawah untuk terjemahan bahasa {{ $localeHint }}. Kosongkan jika tidak diperlukan.
+                        </p>
+
+                        {{-- Translated Title --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Judul Halaman ({{ $localeHint }})</label>
+                            <input type="text" wire:model="tr.title"
+                                   placeholder="Page title in {{ $localeHint }}..."
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#40ac98] focus:border-[#40ac98] outline-none" />
+                            @error('tr.title') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Translated Content --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Konten Halaman ({{ $localeHint }})</label>
+                            <textarea wire:model="tr.content" rows="8"
+                                      placeholder="Page content in {{ $localeHint }}..."
+                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#40ac98] focus:border-[#40ac98] outline-none resize-y"></textarea>
+                            @error('tr.content') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- Published Toggle --}}
             <div class="flex items-center gap-3">

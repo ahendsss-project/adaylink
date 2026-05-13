@@ -1,4 +1,4 @@
-<div x-data="{ showGallery: false }">
+<div x-data="{ showGallery: false, showTranslation: {{ $multilanguageEnabled ? 'true' : 'false' }} }">
     {{-- Back Button --}}
     <a href="{{ route('driver.tours.index') }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,6 +229,156 @@
                        class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
                 <label for="is_featured" class="text-sm font-medium text-gray-600">Tandai sebagai Featured (⭐)</label>
             </div>
+
+            {{-- Translation Section --}}
+            @if ($multilanguageEnabled)
+                @php
+                    $localeLabel = $secondaryLocale === 'en' ? '🇬🇧 English' : '🇮🇩 Indonesia';
+                    $localeHint = $secondaryLocale === 'en' ? 'English' : 'Indonesia';
+                @endphp
+                <div class="border border-blue-200 rounded-xl overflow-hidden">
+                    <button type="button" @click="showTranslation = !showTranslation"
+                            class="w-full flex items-center justify-between px-5 py-3 bg-blue-50 hover:bg-blue-100 transition">
+                        <span class="flex items-center gap-2 text-sm font-medium text-blue-800">
+                            <i class="fas fa-language"></i>
+                            Terjemahan {{ $localeLabel }}
+                        </span>
+                        <i class="fas fa-chevron-down text-blue-400 transition-transform" :class="showTranslation ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="showTranslation" x-transition class="p-5 space-y-4 bg-white">
+                        <p class="text-xs text-gray-400 mb-3">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Isi kolom di bawah untuk terjemahan bahasa {{ $localeHint }}. Kosongkan jika tidak diperlukan.
+                        </p>
+
+                        {{-- Translated Title --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Judul Paket Tour ({{ $localeHint }})</label>
+                            <input type="text" wire:model="tr.title"
+                                   placeholder="Tour package title in {{ $localeHint }}..."
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                            @error('tr.title') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Translated Duration --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Durasi ({{ $localeHint }})</label>
+                            <input type="text" wire:model="tr.duration_text"
+                                   placeholder="Duration in {{ $localeHint }}..."
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                            @error('tr.duration_text') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Translated Description --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Deskripsi ({{ $localeHint }})</label>
+                            <textarea wire:model="tr.description" rows="4"
+                                      placeholder="Description in {{ $localeHint }}..."
+                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"></textarea>
+                            @error('tr.description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Translated Itinerary --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-medium text-gray-600">Itinerary ({{ $localeHint }})</label>
+                                <button type="button" wire:click="addTrItineraryDay"
+                                        class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+                                    <i class="fas fa-plus"></i> Tambah Hari
+                                </button>
+                            </div>
+                            <div class="space-y-3">
+                                @foreach ($tr_itinerary_items as $index => $item)
+                                    <div class="flex items-start gap-2">
+                                        <div class="shrink-0 w-16 pt-2">
+                                            <span class="inline-flex items-center justify-center w-full text-xs font-bold text-white py-1.5 rounded-lg bg-blue-400">
+                                                Hari {{ $index + 1 }}
+                                            </span>
+                                        </div>
+                                        <input type="text" wire:model="tr_itinerary_items.{{ $index }}"
+                                               placeholder="Itinerary in {{ $localeHint }}..."
+                                               class="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                                        @if (count($tr_itinerary_items) > 1)
+                                            <button type="button" wire:click="removeTrItineraryDay({{ $index }})"
+                                                    class="shrink-0 w-9 h-9 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition mt-0.5">
+                                                <i class="fas fa-trash-alt text-sm"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Translated Includes --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-medium text-gray-600">
+                                    <span class="inline-flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> Termasuk ({{ $localeHint }})</span>
+                                </label>
+                                <button type="button" wire:click="addTrIncludeItem"
+                                        class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+                                    <i class="fas fa-plus"></i> Tambah
+                                </button>
+                            </div>
+                            <div class="space-y-2">
+                                @foreach ($tr_include_items as $index => $item)
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-check text-green-500 text-xs mt-0.5"></i>
+                                        <input type="text" wire:model="tr_include_items.{{ $index }}"
+                                               placeholder="Include item in {{ $localeHint }}..."
+                                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                                        @if (count($tr_include_items) > 1)
+                                            <button type="button" wire:click="removeTrIncludeItem({{ $index }})"
+                                                    class="shrink-0 w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                                                <i class="fas fa-times text-xs"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Translated Excludes --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-medium text-gray-600">
+                                    <span class="inline-flex items-center gap-1"><i class="fas fa-times-circle text-red-400"></i> Tidak Termasuk ({{ $localeHint }})</span>
+                                </label>
+                                <button type="button" wire:click="addTrExcludeItem"
+                                        class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">
+                                    <i class="fas fa-plus"></i> Tambah
+                                </button>
+                            </div>
+                            <div class="space-y-2">
+                                @foreach ($tr_exclude_items as $index => $item)
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-times text-red-400 text-xs mt-0.5"></i>
+                                        <input type="text" wire:model="tr_exclude_items.{{ $index }}"
+                                               placeholder="Exclude item in {{ $localeHint }}..."
+                                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                                        @if (count($tr_exclude_items) > 1)
+                                            <button type="button" wire:click="removeTrExcludeItem({{ $index }})"
+                                                    class="shrink-0 w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                                                <i class="fas fa-times text-xs"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Translated Notes --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">
+                                <span class="inline-flex items-center gap-1"><i class="fas fa-sticky-note text-amber-500"></i> Catatan ({{ $localeHint }})</span>
+                            </label>
+                            <textarea wire:model="tr.notes" rows="3"
+                                      placeholder="Notes in {{ $localeHint }}..."
+                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"></textarea>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- Submit --}}
             <div class="flex gap-3 pt-2">

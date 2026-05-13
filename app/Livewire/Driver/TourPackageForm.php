@@ -55,6 +55,22 @@ class TourPackageForm extends Component
 
     public int $maxTours = 0;
 
+    // Translation support
+    public bool $multilanguageEnabled = false;
+    public string $secondaryLocale = 'en';
+
+    /** @var array<string, string> Translation fields for secondary locale */
+    public array $tr = [];
+
+    /** @var array<int, string> */
+    public array $tr_itinerary_items = [];
+
+    /** @var array<int, string> */
+    public array $tr_include_items = [];
+
+    /** @var array<int, string> */
+    public array $tr_exclude_items = [];
+
     public function mount(?string $tourId = null): void
     {
         $user = Auth::guard('web')->user();
@@ -63,6 +79,11 @@ class TourPackageForm extends Component
 
         $this->maxTours = $plan ? $plan->max_tours : 0;
         $this->currentCount = $website ? $website->tourPackages()->count() : 0;
+
+        // Determine multilanguage availability
+        $this->multilanguageEnabled = $plan ? $plan->hasFeature('multilanguage') : false;
+        $defaultLocale = $website->default_locale ?? 'id';
+        $this->secondaryLocale = $defaultLocale === 'id' ? 'en' : 'id';
 
         if ($tourId) {
             $this->tourPackage = TourPackage::where('id', $tourId)
@@ -90,6 +111,20 @@ class TourPackageForm extends Component
             if (empty($this->include_items)) $this->include_items = [''];
             if (empty($this->exclude_items)) $this->exclude_items = [''];
 
+            // Load translations for secondary locale
+            $this->tr = [
+                'title' => $this->tourPackage->getTranslation('title', $this->secondaryLocale) ?? '',
+                'description' => $this->tourPackage->getTranslation('description', $this->secondaryLocale) ?? '',
+                'duration_text' => $this->tourPackage->getTranslation('duration_text', $this->secondaryLocale) ?? '',
+                'notes' => $this->tourPackage->getTranslation('notes', $this->secondaryLocale) ?? '',
+            ];
+            $trItinerary = $this->tourPackage->getTranslation('itinerary', $this->secondaryLocale);
+            $this->tr_itinerary_items = is_array($trItinerary) && !empty($trItinerary) ? $trItinerary : [''];
+            $trIncludes = $this->tourPackage->getTranslation('includes', $this->secondaryLocale);
+            $this->tr_include_items = is_array($trIncludes) && !empty($trIncludes) ? $trIncludes : [''];
+            $trExcludes = $this->tourPackage->getTranslation('excludes', $this->secondaryLocale);
+            $this->tr_exclude_items = is_array($trExcludes) && !empty($trExcludes) ? $trExcludes : [''];
+
             $this->isEditing = true;
         } else {
             // Check quota for new tour
@@ -100,6 +135,12 @@ class TourPackageForm extends Component
             $this->itinerary_items = [''];
             $this->include_items = [''];
             $this->exclude_items = [''];
+
+            // Initialize empty translation fields
+            $this->tr = ['title' => '', 'description' => '', 'duration_text' => '', 'notes' => ''];
+            $this->tr_itinerary_items = [''];
+            $this->tr_include_items = [''];
+            $this->tr_exclude_items = [''];
         }
     }
 
@@ -157,6 +198,46 @@ class TourPackageForm extends Component
         }
     }
 
+    // Translation itinerary management
+    public function addTrItineraryDay(): void
+    {
+        $this->tr_itinerary_items[] = '';
+    }
+
+    public function removeTrItineraryDay(int $index): void
+    {
+        if (isset($this->tr_itinerary_items[$index]) && count($this->tr_itinerary_items) > 1) {
+            unset($this->tr_itinerary_items[$index]);
+            $this->tr_itinerary_items = array_values($this->tr_itinerary_items);
+        }
+    }
+
+    public function addTrIncludeItem(): void
+    {
+        $this->tr_include_items[] = '';
+    }
+
+    public function removeTrIncludeItem(int $index): void
+    {
+        if (isset($this->tr_include_items[$index]) && count($this->tr_include_items) > 1) {
+            unset($this->tr_include_items[$index]);
+            $this->tr_include_items = array_values($this->tr_include_items);
+        }
+    }
+
+    public function addTrExcludeItem(): void
+    {
+        $this->tr_exclude_items[] = '';
+    }
+
+    public function removeTrExcludeItem(int $index): void
+    {
+        if (isset($this->tr_exclude_items[$index]) && count($this->tr_exclude_items) > 1) {
+            unset($this->tr_exclude_items[$index]);
+            $this->tr_exclude_items = array_values($this->tr_exclude_items);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -174,6 +255,16 @@ class TourPackageForm extends Component
             'exclude_items.*' => 'nullable|string',
             'notes' => 'nullable|string',
             'is_featured' => 'boolean',
+            'tr.title' => 'nullable|string|max:255',
+            'tr.description' => 'nullable|string',
+            'tr.duration_text' => 'nullable|string|max:255',
+            'tr.notes' => 'nullable|string',
+            'tr_itinerary_items' => 'nullable|array',
+            'tr_itinerary_items.*' => 'nullable|string',
+            'tr_include_items' => 'nullable|array',
+            'tr_include_items.*' => 'nullable|string',
+            'tr_exclude_items' => 'nullable|array',
+            'tr_exclude_items.*' => 'nullable|string',
         ];
     }
 
@@ -214,6 +305,41 @@ class TourPackageForm extends Component
             'notes' => $this->notes ?: null,
             'is_featured' => $this->is_featured,
         ];
+
+        // Build translations JSON
+        if ($this->multilanguageEnabled) {
+            $trItinerary = array_values(array_filter($this->tr_itinerary_items, fn ($item) => ! empty(trim($item))));
+            $trIncludes = array_values(array_filter($this->tr_include_items, fn ($item) => ! empty(trim($item))));
+            $trExcludes = array_values(array_filter($this->tr_exclude_items, fn ($item) => ! empty(trim($item))));
+
+            $existingTranslations = $this->isEditing ? ($this->tourPackage->translations ?? []) : [];
+
+            // Check if any translation field has content
+            $hasTranslation = !empty(trim($this->tr['title'] ?? ''))
+                || !empty(trim($this->tr['description'] ?? ''))
+                || !empty(trim($this->tr['duration_text'] ?? ''))
+                || !empty(trim($this->tr['notes'] ?? ''))
+                || !empty($trItinerary)
+                || !empty($trIncludes)
+                || !empty($trExcludes);
+
+            if ($hasTranslation) {
+                $existingTranslations[$this->secondaryLocale] = array_filter([
+                    'title' => $this->tr['title'] ?: null,
+                    'description' => $this->tr['description'] ?: null,
+                    'duration_text' => $this->tr['duration_text'] ?: null,
+                    'notes' => $this->tr['notes'] ?: null,
+                    'itinerary' => !empty($trItinerary) ? $trItinerary : null,
+                    'includes' => !empty($trIncludes) ? $trIncludes : null,
+                    'excludes' => !empty($trExcludes) ? $trExcludes : null,
+                ], fn($v) => $v !== null);
+            } else {
+                // Remove translations for this locale if all empty
+                unset($existingTranslations[$this->secondaryLocale]);
+            }
+
+            $data['translations'] = !empty($existingTranslations) ? $existingTranslations : null;
+        }
 
         if ($this->isEditing) {
             $this->tourPackage->update($data);

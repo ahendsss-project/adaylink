@@ -79,6 +79,13 @@ class WebsiteSettings extends Component
     public string $subdomain = '';
     public string $currentSubdomain = '';
 
+    // Translation support
+    public bool $multilanguageEnabled = false;
+    public string $secondaryLocale = 'en';
+
+    /** @var array<string, string> Translation fields for secondary locale */
+    public array $tr = [];
+
     public function mount(): void
     {
         $user = Auth::guard('web')->user();
@@ -93,6 +100,11 @@ class WebsiteSettings extends Component
         // Determine allowed template tier from user's plan
         $plan = $user->plan;
         $this->allowedTier = $plan ? $plan->allowed_template_tier : 'Basic';
+
+        // Determine multilanguage availability
+        $this->multilanguageEnabled = $plan ? $plan->hasFeature('multilanguage') : false;
+        $defaultLocale = $website->default_locale ?? 'id';
+        $this->secondaryLocale = $defaultLocale === 'id' ? 'en' : 'id';
 
         // Load website fields
         $this->logo_url = $website->logo_url ?? '';
@@ -148,6 +160,15 @@ class WebsiteSettings extends Component
         $this->seo_meta_title = $setting->seo_meta_title ?? '';
         $this->seo_meta_description = $setting->seo_meta_description ?? '';
         $this->gallery_images = $setting->gallery_images ?? [];
+
+        // Load translations for secondary locale
+        $this->tr = [
+            'site_title' => $setting->getTranslation('site_title', $this->secondaryLocale) ?? '',
+            'hero_title' => $setting->getTranslation('hero_title', $this->secondaryLocale) ?? '',
+            'hero_subtitle' => $setting->getTranslation('hero_subtitle', $this->secondaryLocale) ?? '',
+            'seo_meta_title' => $setting->getTranslation('seo_meta_title', $this->secondaryLocale) ?? '',
+            'seo_meta_description' => $setting->getTranslation('seo_meta_description', $this->secondaryLocale) ?? '',
+        ];
     }
 
     public function addGalleryImage(): void
@@ -246,24 +267,53 @@ class WebsiteSettings extends Component
         // Update website fields
         $website->update($websiteData);
 
+        // Build settings data
+        $settingsData = [
+            'template_id' => $this->template_id,
+            'site_title' => $this->site_title ?: null,
+            'primary_color' => $this->primary_color,
+            'secondary_color' => $this->secondary_color,
+            'font_family' => $this->font_family,
+            'font_heading' => $this->font_heading,
+            'font_body' => $this->font_body,
+            'hero_title' => $this->hero_title,
+            'hero_subtitle' => $this->hero_subtitle,
+            'hero_image_url' => $this->hero_image_url,
+            'seo_meta_title' => $this->seo_meta_title,
+            'seo_meta_description' => $this->seo_meta_description,
+            'gallery_images' => ! empty($this->gallery_images) ? $this->gallery_images : null,
+        ];
+
+        // Handle translations for secondary locale
+        if ($this->multilanguageEnabled) {
+            $existingSetting = $website->websiteSetting;
+            $existingTranslations = $existingSetting ? ($existingSetting->translations ?? []) : [];
+
+            $hasTranslation = !empty(trim($this->tr['site_title'] ?? ''))
+                || !empty(trim($this->tr['hero_title'] ?? ''))
+                || !empty(trim($this->tr['hero_subtitle'] ?? ''))
+                || !empty(trim($this->tr['seo_meta_title'] ?? ''))
+                || !empty(trim($this->tr['seo_meta_description'] ?? ''));
+
+            if ($hasTranslation) {
+                $existingTranslations[$this->secondaryLocale] = array_filter([
+                    'site_title' => $this->tr['site_title'] ?: null,
+                    'hero_title' => $this->tr['hero_title'] ?: null,
+                    'hero_subtitle' => $this->tr['hero_subtitle'] ?: null,
+                    'seo_meta_title' => $this->tr['seo_meta_title'] ?: null,
+                    'seo_meta_description' => $this->tr['seo_meta_description'] ?: null,
+                ], fn($v) => $v !== null);
+            } else {
+                unset($existingTranslations[$this->secondaryLocale]);
+            }
+
+            $settingsData['translations'] = !empty($existingTranslations) ? $existingTranslations : null;
+        }
+
         // Update website settings
         WebsiteSetting::updateOrCreate(
             ['website_id' => $website->id],
-            [
-                'template_id' => $this->template_id,
-                'site_title' => $this->site_title ?: null,
-                'primary_color' => $this->primary_color,
-                'secondary_color' => $this->secondary_color,
-                'font_family' => $this->font_family,
-                'font_heading' => $this->font_heading,
-                'font_body' => $this->font_body,
-                'hero_title' => $this->hero_title,
-                'hero_subtitle' => $this->hero_subtitle,
-                'hero_image_url' => $this->hero_image_url,
-                'seo_meta_title' => $this->seo_meta_title,
-                'seo_meta_description' => $this->seo_meta_description,
-                'gallery_images' => ! empty($this->gallery_images) ? $this->gallery_images : null,
-            ]
+            $settingsData
         );
 
         session()->flash('success', 'Pengaturan website berhasil disimpan!');

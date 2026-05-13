@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ showTranslation: {{ $multilanguageEnabled ? 'true' : 'false' }} }">
     {{-- Flash --}}
     @if (session()->has('success'))
         <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" x-transition
@@ -337,6 +337,75 @@
                 </div>
             </div>
         </div>
+
+        {{-- Translation Section --}}
+        @if ($multilanguageEnabled)
+            @php
+                $localeLabel = $secondaryLocale === 'en' ? '🇬🇧 English' : '🇮🇩 Indonesia';
+                $localeHint = $secondaryLocale === 'en' ? 'English' : 'Indonesia';
+            @endphp
+            <div class="border border-blue-200 rounded-xl overflow-hidden">
+                <button type="button" @click="showTranslation = !showTranslation"
+                        class="w-full flex items-center justify-between px-5 py-3 bg-blue-50 hover:bg-blue-100 transition">
+                    <span class="flex items-center gap-2 text-sm font-medium text-blue-800">
+                        <i class="fas fa-language"></i>
+                        Terjemahan {{ $localeLabel }}
+                    </span>
+                    <i class="fas fa-chevron-down text-blue-400 transition-transform" :class="showTranslation ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="showTranslation" x-transition class="p-5 space-y-4 bg-white">
+                    <p class="text-xs text-gray-400 mb-3">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Isi kolom di bawah untuk terjemahan bahasa {{ $localeHint }}. Kolom yang dikosongkan akan menggunakan teks bahasa utama.
+                    </p>
+
+                    {{-- Translated Site Title --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Judul Website ({{ $localeHint }})</label>
+                        <input type="text" wire:model="tr.site_title"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                               style="--tw-ring-color: var(--brand)"
+                               placeholder="Website title in {{ $localeHint }}..." />
+                    </div>
+
+                    {{-- Translated Hero Title --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Judul Hero ({{ $localeHint }})</label>
+                        <input type="text" wire:model="tr.hero_title"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                               style="--tw-ring-color: var(--brand)"
+                               placeholder="Hero title in {{ $localeHint }}..." />
+                    </div>
+
+                    {{-- Translated Hero Subtitle --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Subjudul Hero ({{ $localeHint }})</label>
+                        <textarea wire:model="tr.hero_subtitle" rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                                  style="--tw-ring-color: var(--brand)"
+                                  placeholder="Hero subtitle in {{ $localeHint }}..."></textarea>
+                    </div>
+
+                    {{-- Translated SEO Meta Title --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Meta Title ({{ $localeHint }})</label>
+                        <input type="text" wire:model="tr.seo_meta_title"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                               style="--tw-ring-color: var(--brand)"
+                               placeholder="SEO meta title in {{ $localeHint }}..." />
+                    </div>
+
+                    {{-- Translated SEO Meta Description --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Meta Description ({{ $localeHint }})</label>
+                        <textarea wire:model="tr.seo_meta_description" rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                                  style="--tw-ring-color: var(--brand)"
+                                  placeholder="SEO meta description in {{ $localeHint }}..."></textarea>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         {{-- Subdomain --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5">

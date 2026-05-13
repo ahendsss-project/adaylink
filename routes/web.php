@@ -27,7 +27,7 @@ use App\Models\AuditLog;
 |--------------------------------------------------------------------------
 */
 Route::middleware('custom_domain.resolve')->group(function () {
-    Route::post('/reviews', [ReviewController::class, 'store'])->name('custom-domain.reviews.store');
+    Route::post('/reviews', [ReviewController::class, 'store'])->middleware('throttle:3,1')->name('custom-domain.reviews.store');
     Route::get('/page/{slug}', [PublicWebsiteController::class, 'showPage'])->name('custom-domain.page');
     Route::get('/tour/{slug}', [PublicWebsiteController::class, 'showTour'])->name('custom-domain.tour');
 });
@@ -77,7 +77,7 @@ Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest:admin')->group(function () {
         Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [AdminLoginController::class, 'login'])->name('login.post');
+        Route::post('/login', [AdminLoginController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
     });
 
     Route::middleware('auth:admin')->group(function () {
@@ -118,12 +118,12 @@ Route::prefix('app')->group(function () {
     Route::get('/demo/{template}/tour/{slug}', [TemplateDemoController::class, 'showTour'])->name('demo.tour');
     Route::get('/demo/{template}/page/{slug}', [TemplateDemoController::class, 'showPage'])->name('demo.page');
 
-    // Auth Routes
+    // Auth Routes (with rate limiting to prevent brute force)
     Route::middleware('guest:web')->group(function () {
         Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+        Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
         Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-        Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+        Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:3,1')->name('register.post');
     });
 
     // Protected Routes

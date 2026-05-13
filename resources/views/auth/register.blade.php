@@ -16,7 +16,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('register.post') }}" x-data="{ showPassword: false }">
+    <form method="POST" action="{{ route('register.post') }}" x-data="{ showPassword: false, password: '', checkPassword() {} }">
         @csrf
 
         {{-- Full Name --}}
@@ -69,6 +69,8 @@
                     :type="showPassword ? 'text' : 'password'"
                     id="password"
                     name="password"
+                    x-model="password"
+                    @input="checkPassword()"
                     required
                     placeholder="Minimal 8 karakter"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition pr-10"
@@ -87,6 +89,22 @@
                     </svg>
                 </button>
             </div>
+            {{-- Password strength indicators --}}
+            <div class="mt-2 space-y-1" x-show="password && password.length > 0">
+                <p class="text-xs" :class="password.length >= 8 ? 'text-green-600' : 'text-gray-400'">
+                    <span x-text="password.length >= 8 ? '✅' : '○'"></span> Minimal 8 karakter
+                </p>
+                <p class="text-xs" :class="/[A-Z]/.test(password) ? 'text-green-600' : 'text-gray-400'">
+                    <span x-text="/[A-Z]/.test(password) ? '✅' : '○'"></span> Huruf besar (A-Z)
+                </p>
+                <p class="text-xs" :class="/[0-9]/.test(password) ? 'text-green-600' : 'text-gray-400'">
+                    <span x-text="/[0-9]/.test(password) ? '✅' : '○'"></span> Angka (0-9)
+                </p>
+                <p class="text-xs" :class="/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : 'text-gray-400'">
+                    <span x-text="/[^A-Za-z0-9]/.test(password) ? '✅' : '○'"></span> Karakter khusus (!@#$%...)
+                </p>
+            </div>
+            @error('password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
         </div>
 
         {{-- Confirm Password --}}

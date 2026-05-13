@@ -35,6 +35,13 @@ class PageForm extends Component
 
     public int $maxPages = 0;
 
+    // Translation support
+    public bool $multilanguageEnabled = false;
+    public string $secondaryLocale = 'en';
+
+    /** @var array<string, string> Translation fields for secondary locale */
+    public array $tr = [];
+
     public function mount(?string $pageId = null): void
     {
         $user = Auth::guard('web')->user();
@@ -43,6 +50,11 @@ class PageForm extends Component
 
         $this->maxPages = $plan ? $plan->max_pages : 0;
         $this->currentCount = $website ? Page::where('website_id', $website->id)->count() : 0;
+
+        // Determine multilanguage availability
+        $this->multilanguageEnabled = $plan ? $plan->hasFeature('multilanguage') : false;
+        $defaultLocale = $website->default_locale ?? 'id';
+        $this->secondaryLocale = $defaultLocale === 'id' ? 'en' : 'id';
 
         if ($pageId) {
             $this->page = Page::where('id', $pageId)
@@ -57,12 +69,21 @@ class PageForm extends Component
                 'sort_order' => (string) ($this->page->sort_order ?? 0),
             ]);
 
+            // Load translations for secondary locale
+            $this->tr = [
+                'title' => $this->page->getTranslation('title', $this->secondaryLocale) ?? '',
+                'content' => $this->page->getTranslation('content', $this->secondaryLocale) ?? '',
+            ];
+
             $this->isEditing = true;
         } else {
             // Check quota for new page
             if ($this->currentCount >= $this->maxPages) {
                 $this->quotaExceeded = true;
             }
+
+            // Initialize empty translation fields
+            $this->tr = ['title' => '', 'content' => ''];
         }
     }
 
@@ -82,7 +103,15 @@ class PageForm extends Component
             return;
         }
 
-        $this->validate();
+        $this->validate([
+            'title' => 'required|string|max:255',
+            'slug' => 'required|string|max:255',
+            'content' => 'nullable|string',
+            'is_published' => 'boolean',
+            'sort_order' => 'nullable|integer|min:0',
+            'tr.title' => 'nullable|string|max:255',
+            'tr.content' => 'nullable|string',
+        ]);
 
         $website = Auth::guard('web')->user()->websites->first();
 
@@ -105,6 +134,25 @@ class PageForm extends Component
             'is_published' => $this->is_published,
             'sort_order' => (int) $this->sort_order,
         ];
+
+        // Build translations JSON
+        if ($this->multilanguageEnabled) {
+            $existingTranslations = $this->isEditing ? ($this->page->translations ?? []) : [];
+
+            $hasTranslation = !empty(trim($this->tr['title'] ?? ''))
+                || !empty(trim($this->tr['content'] ?? ''));
+
+            if ($hasTranslation) {
+                $existingTranslations[$this->secondaryLocale] = array_filter([
+                    'title' => $this->tr['title'] ?: null,
+                    'content' => $this->tr['content'] ?: null,
+                ], fn($v) => $v !== null);
+            } else {
+                unset($existingTranslations[$this->secondaryLocale]);
+            }
+
+            $data['translations'] = !empty($existingTranslations) ? $existingTranslations : null;
+        }
 
         if ($this->isEditing) {
             $this->page->update($data);
